@@ -6,10 +6,10 @@ An EZID Archival Resource Key (ARK) management interface for Islandora.
 
 A rough plan, sure to be revised and revised again...
 
-Stage 1: An administrative UI for batch ARK reservations.  []
-Stage 2: An administrative UI for managing/minting reserved ARKs.  []
-Stage 3: An object page redirect for ARKs.  []
-Stage 4: A resolution mechanism for having ARKs in system URLs.  []
+* _Stage 1:_ An administrative UI for batch ARK reservations.  []
+* _Stage 2:_ An administrative UI for managing/minting reserved ARKs.  []
+* _Stage 3:_ An object page redirect for ARKs.  []
+* _Stage 4:_ A resolution mechanism for having ARKs in system URLs.  []
 
 *Open Questions:*
 
