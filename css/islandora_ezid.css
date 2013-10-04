@@ -1,0 +1,8 @@
+root {
+  display: block;
+}
+
+/* We need a litle more space between debug checkbox and submit button */
+#islandora-ezid-admin div div#edit-actions {
+  margin-top: 30px;
+}

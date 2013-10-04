@@ -1,0 +1,9 @@
+name = Islandora EZID ARK Manager
+description = Manages EZID ARKs inside of Islandora.
+dependencies[] = islandora
+package = Islandora
+version = 7.x-dev
+core = 7.x
+configure = admin/islandora/ezid
+stylesheets[all][] = css/islandora_ezid.css
+scripts[] = js/islandora_ezid.js

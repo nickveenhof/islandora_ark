@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Installs the required Islandora EZID module.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * @see islandora_islandora_required_objects()
+ */
+function islandora_ezid_install() {
+  // Temporarily cheating to make coding standards happy.
+  variable_del('this is bogus');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_ezid_uninstall() {
+  variable_del('islandora_ezid_settings');
+}

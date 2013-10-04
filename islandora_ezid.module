@@ -1,0 +1,123 @@
+<?php
+
+/**
+ * @file
+ * EZID Archival Resource Key (ARK) management module.
+ */
+
+/**
+ * Implements hook_menu().
+ *
+ * Drupal menus allow urls to be used as function calls, giving Drupal gets
+ * much of its power and flexibillty.
+ *
+ * See Drupal API for more details: http://goo.gl/kyZnl
+ */
+function islandora_ezid_menu() {
+  $items['admin/islandora/ezid'] = array(
+    'title' => 'EZID ARKs',
+    'description' => 'Configures the management of ARKs through EZID.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_ezid_admin'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/islandora_ezid.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/islandora/ezid/settings'] = array(
+    'title' => 'EZID Settings',
+    'description' => 'Allows batch operations against EZID',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_ezid_admin'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/islandora_ezid.admin.inc',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/islandora/ezid/batch'] = array(
+    'title' => 'Run Batch',
+    'description' => 'Runs EZID batch operations',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_ezid_batch'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/islandora_ezid.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/islandora/ezid/manage'] = array(
+    'title' => 'Manage ARKs',
+    'description' => 'Manages ARKs created with EZID',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_ezid_manage'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/islandora_ezid.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ *
+ * We supply a pattern so we can overide templates at the theme level if needed.
+ *
+ * We can append a pid to a template and the new template file will be called
+ * (the pids colon should be replaced with a dash)
+ */
+function islandora_ezid_theme($existing, $type, $theme, $path) {
+  return array(
+    'islandora_ezid' => array(
+      // Theme details for islandora_ezid go here.
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_theme().
+ *
+ * This is a Drupal hook, not supplied by islandora.
+ *
+ * Variables required for display are assembled here and passed to the template
+ * file defined in the theme function.  The function defines islandora-ezid,
+ * which expands to islandora-ezid.tpl.php.
+ *
+ * The islandora object has been added to the $variables array by
+ * hook_CMODEL_PID_islandora_view_object(), which in this case is
+ * islandora_ezid_islandora_ezidCModel_islandora_view_object
+ */
+function islandora_ezid_preprocess_islandora_ezid(array &$variables) {
+  // Do something.
+}
+
+/**
+ * Implements hook_CMODEL_PID_islandora_object_ingested().
+ *
+ * This hook tells Islandora what to do with the object once it has been
+ * ingested. In this case the raw text has been uploaded so we'll be in a
+ * position to use that as input for our derived datastreams. The function
+ * islandora_ezid_create_all_derivatives will be called with a reference to the
+ * as yet uningested object.
+ */
+function islandora_ezid_islandora_ezidCModel_islandora_object_ingested($object) {
+  // Do something.
+}
+
+/**
+ * Gets EZID settings.
+ * 
+ * The default NAAN (99999) and 'shoulder' (fk4) are for testing purposes only
+ * and should be reconfigured in the admin UI.  Anything minted with the test
+ * NAAN and shoulder disappears in two weeks.
+ *
+ * @return array
+ *   Configuration options for EZID.
+ */
+function islandora_ezid_get_settings() {
+  return variable_get('islandora_ezid_settings', array()) +
+  array(
+    'debugMode' => FALSE,
+    'ezidService' => 'https://n2t.net/ezid/',
+    'ezidNAAN' => '99999', /* 99999 is used for testing */
+    'ezidUsername' => 'YOUR_USERNAME', /* Won't work, obviously */
+    'ezidShoulder' => 'fk4', /* fk4 is used for testing */
+  );
+}
