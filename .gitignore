@@ -1,0 +1,2 @@
+# Ignore all ARK export files
+exports/arks-*.csv

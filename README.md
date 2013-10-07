@@ -16,8 +16,7 @@ A rough plan, sure to be revised and revised again...
 * Allow more than one shoulder to be minted and managed?
 * How to do "Stage 4" generically? A different module?  Or Pathauto + something custom for ARKs?
 * Multisite vs. single Drupal.  Some way for this to sit at root and work with multisites?
-
-db_table: ark, url/path, title, author, collection, unused-0/reserved-1/minted-2
+* Should ARK objects be able to be put in more than one collection in the ARK manager?
 
 ### Project Status
 

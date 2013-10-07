@@ -1,0 +1,24 @@
+#! /bin/bash
+
+#
+# A quick and dirty script to make reloading the module easier.
+#
+
+if [ -z "$1" ]; then
+  DRUPAL_HOME=/var/www/drupal
+else
+  DRUPAL_HOME=$1
+fi
+
+echo ''
+echo 'Disabling islandora_ezid...'
+echo ''
+drush -y -r ${DRUPAL_HOME} dis islandora_ezid
+echo ''
+echo 'Uninstalling islandora_ezid...'
+echo ''
+drush -y -r ${DRUPAL_HOME} pmu islandora_ezid
+echo ''
+echo 'Installing islandora_ezid...'
+echo ''
+drush -y -r ${DRUPAL_HOME} en islandora_ezid

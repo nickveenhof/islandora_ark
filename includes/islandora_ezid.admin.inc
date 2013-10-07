@@ -5,13 +5,16 @@
  */
 
 // Pulls in the EZID class which handles our connection to EZID.
+module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.ezid');
+
+// Pulls in some convenience utility functions.
 module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
 
 /**
  * Admin form for the Islandora EZID module.
  *
  * @return array
- *   Returns The admin form.
+ *   Returns The EZID admin form.
  */
 function islandora_ezid_admin() {
   $form = array();
@@ -19,7 +22,7 @@ function islandora_ezid_admin() {
   // Get the EZID settings.
   $settings = islandora_ezid_get_settings();
 
-  // Setting tree to TRUE so we parse the hierarchy of islandora_ezid_settings
+  // Setting tree to TRUE so we parse the hierarchy of settings.
   $form['islandora_ezid_settings'] = array(
     '#type' => 'container',
     '#tree' => TRUE,
@@ -49,6 +52,13 @@ function islandora_ezid_admin() {
     '#default_value' => $settings['ezidShoulder'],
     '#description' => t("The 'shoulder' (or namespace) for newly minted ARKs."),
   );
+  $form['islandora_ezid_settings']['cachedARKCount'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of cached ARKs'),
+    '#element_validate' => array('ark_count_validate'),
+    '#default_value' => $settings['cachedARKCount'],
+    '#description' => t('ARKs can be cached in case EZID is ever unavailable.'),
+  );
   // The username to use when interacting with EZID.
   $form['islandora_ezid_settings']['ezidUsername'] = array(
     '#type' => 'textfield',
@@ -68,7 +78,7 @@ function islandora_ezid_admin() {
     '#type' => 'checkbox',
     '#title' => t('Debug mode'),
     '#default_value' => $settings['debugMode'],
-    '#description' => t('Toggles whether logging messages should be output.'),
+    '#description' => t('Toggles whether logging messages should be logged.'),
   );
 
   // The form's actions.
@@ -104,8 +114,65 @@ function islandora_ezid_manage() {
 function islandora_ezid_batch() {
   $form = array();
 
-  // Get the EZID settings.
-  $settings = islandora_ezid_get_settings();
+  // Get the EZID batch settings.
+  $settings = islandora_ezid_batch_get_settings();
+
+  // Setting tree to TRUE so we parse the hierarchy of settings.
+  $form['#tree'] = TRUE;
+
+  // The number of ARKs we want to reserve in batch mode.
+  $form['numberOfARKs'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of ARKs'),
+    '#default_value' => $settings['numberOfARKs'],
+    '#description' => t('Number of ARKs we want to reserve in batch mode.'),
+  );
+  // An optional collection name with which we want to associate the ARKs.
+  $form['arkCollectionName'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Collection'),
+    '#default_value' => $settings['arkCollectionName'],
+    '#description' => t('An (optional) collection name for the ARKs.'),
+  );
+  // A name of the ARK file we want to download.
+  $form['arkExportFileName'] = array(
+    '#type' => 'textfield',
+    '#title' => t('File name'),
+    '#default_value' => $settings['arkExportFileName'] . time() . '.csv',
+    '#description' => t('Name of the file in which to put the minted ARKs.'),
+  );
+  // Debug mode.
+  $form['debugMode'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Debug mode'),
+    '#default_value' => $settings['debugMode'],
+    '#description' => t('Toggles whether logging messages should be logged.'),
+  );
+
+  // The form's actions.
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit batch job'),
+    '#weight' => -1,
+    '#submit' => array('islandora_ezid_batch_submit'),
+  );
+  $form['actions']['reset'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset to defaults'),
+    '#weight' => 1,
+    '#submit' => array('islandora_ezid_batch_reset'),
+  );
+  $form['actions']['configure'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset default number'),
+    '#weight' => 3,
+    '#submit' => array('islandora_ezid_batch_config'),
+  );
+
+  return $form;
 }
 
 /**
@@ -119,6 +186,35 @@ function islandora_ezid_admin_submit($form, &$form_state) {
       variable_del('islandora_ezid_settings');
       break;
   }
+}
+
+/**
+ * Handles a submit from the EZID batch pane.
+ */
+function islandora_ezid_batch_submit($form, &$form_state) {
+  /* cron_for_islandora_ezid(); */
+  drupal_set_message("submit");
+}
+
+/**
+ * Handles a submit from the EZID batch pane.
+ */
+function islandora_ezid_batch_reset($form, &$form_state) {
+  // We don't need to do anything, form is reset to its original state.
+  drupal_set_message("The batch job form was not submitted, but reset to its" .
+      " default values.");
+}
+
+/**
+ * Handles a submit from the EZID batch pane.
+ */
+function islandora_ezid_batch_config($form, &$form_state) {
+  $settings = islandora_ezid_batch_get_settings();
+  $settings['numberOfARKs'] = $form['numberOfARKs']['#value'];
+
+  variable_set('islandora_ezid_batch_settings', $settings);
+
+  drupal_set_message("The batch job form's defaults were reset to the below.");
 }
 
 /**
@@ -154,6 +250,20 @@ function ezid_naan_validate($element, &$form_state, $form) {
 }
 
 /**
+ * Validates the number of ARKs we've reserved for use in Islandora.
+ */
+function ark_count_validate($element, &$form_state, $form) {
+  $ark_count = $element['#value'];
+
+  if (empty($ark_count)) {
+    form_error($element, t('This field is required.'));
+  }
+  elseif ($ark_count < 0 || $ark_count > 5000) {
+    form_error($element, t("Please select a number between 0 and 5000"));
+  }
+}
+
+/**
  * Validates an optional EZID ARK shoulder.
  */
 function ezid_shoulder_validate($element, &$form_state, $form) {
@@ -173,7 +283,9 @@ function ezid_shoulder_validate($element, &$form_state, $form) {
 function ezid_userpass_validate($element, &$form_state, $form) {
   $base_url = $form['islandora_ezid_settings']['ezidService']['#value'];
   $username = $form['islandora_ezid_settings']['ezidUsername']['#value'];
+  $shoulder = $form['islandora_ezid_settings']['ezidShoulder']['#value'];
   $debug = $form['islandora_ezid_settings']['debugMode']['#value'];
+  $naan = $form['islandora_ezid_settings']['ezidNAAN']['#value'];
   $password = $element['#value'];
 
   if (empty($password)) {
@@ -181,7 +293,7 @@ function ezid_userpass_validate($element, &$form_state, $form) {
   }
   else {
     try {
-      new EZID($base_url, $username, $password, $debug);
+      new EZID($base_url, $naan, $shoulder, $username, $password, $debug);
     }
     catch (Exception $details) {
       form_error($element, $details->getMessage());

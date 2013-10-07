@@ -5,19 +5,114 @@
  * Installs the required Islandora EZID module.
  */
 
+// Pulls in utility functions for the module.
+module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
+
 /**
  * Implements hook_install().
  *
  * @see islandora_islandora_required_objects()
  */
 function islandora_ezid_install() {
-  // Temporarily cheating to make coding standards happy.
-  variable_del('this is bogus');
+  if (db_table_exists('islandora_ezid_arks')) {
+    /* Let's be cautious and export our ARKs before uninstalling. */
+    export_arks();
+
+    /* Then we can drop the table. */
+    drupal_uninstall_schema('islandora_ezid');
+  }
+
+  drupal_install_schema('islandora_ezid');
 }
 
 /**
  * Implements hook_uninstall().
  */
 function islandora_ezid_uninstall() {
+  /* Clean up our variable settings. */
   variable_del('islandora_ezid_settings');
+
+  /* Let's be cautious and export our ARKs before uninstalling. */
+  export_arks();
+
+  /* drupal_uninstall_schema() is called automagically in D7 */
+}
+
+/**
+ * Describes the local EZID table structure.
+ */
+function islandora_ezid_schema() {
+  $schema['islandora_ezid_arks'] = array(
+    'description' => 'Stores reserved and minted ARKs',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key for some future use',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ark' => array(
+        'description' => 'The Archival Resources Key.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'syspath' => array(
+        'description' => 'The system-based path for the object.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'title' => array(
+        'description' => 'The title for the object represented by the ARK.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      /* More textual than authoritative; keeping structure simple to start. */
+      'author' => array(
+        'description' => 'The author for the object represented by the ARK.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      /* TODO: Should we be able to put them in more than one collection? */
+      'collection' => array(
+        'description' => 'Collection for the object represented by the ARK.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'date_reserved' => array(
+        'description' => 'The date this ARK was reserved for use.',
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'not null' => TRUE,
+      ),
+      'date_assigned' => array(
+        'description' => 'The date this ARK was assigned to an object.',
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'not null' => FALSE,
+      ),
+      'date_lastupdate' => array(
+        'description' => 'The date this ARK was assigned to an object.',
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'not null' => TRUE,
+      ),
+      /* TODO: Are there more states we need to include? */
+      'state' => array(
+        'description' => 'The state of the ARK: 0-reserved and 1-assigned',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'length' => 1,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
 }

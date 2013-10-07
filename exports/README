@@ -1,0 +1,10 @@
+The islandora_ezid 'exports' dir is just a precaution against losing your data.
+
+When you disable and uninstall the islandora_ezid module, the module's database
+table is deleted.  Because EZID doesn't have a quick and easy way to get a list
+of all your minted and reserved ARKs, the islandora_ezid module dumps all the
+ARKs it has in its database into a CSV file.  You can delete that file or use it
+for other purposes... it's completely up to you.
+
+The file can also be reloaded using the islandora_ezid module's batch interface.
+Export files from islandora_ezid have a numeric timestamp in the file name.

@@ -13,133 +13,98 @@
  * @param string $text
  *   Text used to label the variable output
  * @param string $start
- *   Starting tag (could be <pre>)
+ *   Starting tag (could be '<pre>')
  * @param string $end
- *   Ending tag (could be </pre>)
+ *   Ending tag (could be '</pre>')
  */
 function print_debug($variable, $text = '', $start = '', $end = '') {
   drupal_set_message($start . $text . ' ' . print_r($variable, TRUE) . $end);
 }
 
-class EZID {
+/**
+ * A utility to export all the ARKs in the database to a CSV file.
+ */
+function export_arks() {
+  if (db_table_exists('islandora_ezid_arks')) {
+    $fs_path = drupal_get_path('module', 'islandora_ezid');
+    $ark_file = fopen($fs_path . '/exports/arks-' . time() . '.csv', 'a');
 
-  /**
-   * EZID service base URL string.
-   *
-   * @var string
-   * @access public
-   */
-  public $url;
+    // Get everything from the database table we created at install.
+    $result = db_query("SELECT * FROM {islandora_ezid_arks}");
 
-  /**
-   * EZID user account username.
-   *
-   * @var string
-   * @access public
-   */
-  public $username;
+    foreach ($result as $record) {
+      fwrite($ark_file, print_r($record, TRUE) . "\n");
+    }
 
-  /**
-   * EZID user account password.
-   *
-   * @var string
-   * @access public
-   */
-  public $password;
+    fclose($ark_file);
+  }
+}
 
-  /**
-   * EZID cookie provided after a successful login.
-   *
-   * @var string
-   * @access public
-   */
-  public $cookie;
+/**
+ * Saves an ARK to the local database.
+ *
+ * @param string $ark
+ *   Newly minted ARK that should be kept in our local database as well
+ */
+function save_ark($ark, $key = NULL, $metadata = NULL) {
+  $curr_date = date("Y-m-d H:i:s");
 
-  /**
-   * Whether debugging messages should be printed.
-   *
-   * @var boolean
-   * @access public
-   */
-  public $debug;
+  if (isset($key)) {
+    // Do stuff with metadata array...
+  }
+  else {
+    $record = array(
+      'ark' => $ark,
+      'date_reserved' => $curr_date,
+      'date_lastupdate' => $curr_date,
+      'state' => 0,
+    );
+  }
 
-  /**
-   * Constructor for EZID object.
-   *
-   * @param string $service
-   *   EZID service URL
-   * @param string $username
-   *   EZID username
-   * @param string $password
-   *   EZID password
-   * @param bool $debug
-   *   Whether debugging is on
-   */
-  public function __construct($service, $username, $password, $debug = FALSE) {
-    $url = $this->endsWith($service, '/') ? rtrim($service, '/') : $service;
+  drupal_write_record('islandora_ezid_arks', $record);
+}
 
-    $this->url = $url;
-    $this->username = $username;
-    $this->password = $password;
-    $this->debug = $debug;
+/**
+ * Runs a check on the number of cached ARKs in islandora_ezid.
+ */
+function cron_for_islandora_ezid() {
+  $settings = islandora_ezid_get_settings();
+  $username = $settings['ezidUsername'];
+  $password = $settings['ezidPassword'];
+  $shoulder = $settings['ezidShoulder'];
+  $total = $settings['cachedARKCount'];
+  $url = $settings['ezidService'];
+  $debug = $settings['debugMode'];
+  $naan = $settings['ezidNAAN'];
 
-    $auth_data = $username . ':' . (isset($password) ? $password : '');
-    $headers = array('Authorization' => 'Basic ' . base64_encode($auth_data));
-    $options = array('headers' => $headers);
+  $query = 'SELECT COUNT(*) FROM {islandora_ezid_arks} WHERE state = 0';
+  $count = db_query($query)->fetchField(); /* How many reserved in cache? */
+  $count = $total - $count; /* How many more reserveds do we need to add? */
+
+  if ($debug) {
+    $message = 'Need ' . $count . ' new ARKs; ';
+    $message .= ($count > 0 ? 'reserving...' : 'resting...');
+    watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
+  }
+
+  // We have nothing more to do!
+  if ($count == 0) {
+    return;
+  }
+
+  try {
+    $ezid = new EZID($url, $naan, $shoulder, $username, $password, $debug);
+
+    for ($index = 1; $index <= $count; $index++) {
+      save_ark($ezid->reserveARK());
+    }
 
     if ($debug) {
-      $ssl_version = curl_version()['ssl_version'];
-
-      print_debug('Connecting to: ' . check_url($url . '/login'));
-
-      if (isset($ssl_version)) {
-        print_debug('Using SSL version: ' . $ssl_version);
-      }
-    }
-
-    // PHP must be compiled with OpenSSL support for https URLs to work.
-    $result = drupal_http_request(check_url($url . '/login'), $options);
-
-    if ($result->code != 200) {
-      if ($debug) {
-        throw new Exception(t('Failed to login using credentials: ') .
-            $username . ':' . $password . ' [' . $result->code . ': ' .
-            $result->error . ']');
-      }
-      else {
-        throw new Exception(t('Failed to login using those credentials'));
-      }
-    }
-    else {
-      $this->cookie = $result->headers['set-cookie'];
-
-      if ($debug) {
-        print_debug('Received EZID cookie: ' . $this->cookie);
-      }
+      $message = 'Successfully reserved ' . $count . ' new ARKs';
+      watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
     }
   }
-
-  /**
-   * Destructor for EZID object.
-   */
-  public function __destruct() {
-    var_dump($this->url);
-    var_dump($this->username);
-    var_dump($this->password);
-  }
-
-  /**
-   * Searches for substring at the end of the supplied string.
-   *
-   * @param string $str
-   *   A string in which to look for the supplied substring
-   * @param string $substr
-   *   A substring to look for at the end of the supplied string
-   *
-   * @return bool
-   *   True if the substring is found at the end of the string; else, false
-   */
-  protected function endsWith($str, $substr) {
-    return $substr === "" || substr($str, -strlen($substr)) === $substr;
+  catch (Exception $details) {
+    watchdog('ezid_cron', 'Exception: ' . $details->getMessage());
   }
 }

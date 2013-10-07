@@ -5,6 +5,12 @@
  * EZID Archival Resource Key (ARK) management module.
  */
 
+// Pulls in the EZID class which handles our connection to EZID.
+module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.ezid');
+
+// Pulls in some basic utility functions.
+module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
+
 /**
  * Implements hook_menu().
  *
@@ -43,7 +49,7 @@ function islandora_ezid_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/islandora/ezid/manage'] = array(
-    'title' => 'Manage ARKs',
+    'title' => 'Manage',
     'description' => 'Manages ARKs created with EZID',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('islandora_ezid_manage'),
@@ -92,10 +98,7 @@ function islandora_ezid_preprocess_islandora_ezid(array &$variables) {
  * Implements hook_CMODEL_PID_islandora_object_ingested().
  *
  * This hook tells Islandora what to do with the object once it has been
- * ingested. In this case the raw text has been uploaded so we'll be in a
- * position to use that as input for our derived datastreams. The function
- * islandora_ezid_create_all_derivatives will be called with a reference to the
- * as yet uningested object.
+ * ingested.
  */
 function islandora_ezid_islandora_ezidCModel_islandora_object_ingested($object) {
   // Do something.
@@ -103,7 +106,7 @@ function islandora_ezid_islandora_ezidCModel_islandora_object_ingested($object) 
 
 /**
  * Gets EZID settings.
- * 
+ *
  * The default NAAN (99999) and 'shoulder' (fk4) are for testing purposes only
  * and should be reconfigured in the admin UI.  Anything minted with the test
  * NAAN and shoulder disappears in two weeks.
@@ -114,10 +117,34 @@ function islandora_ezid_islandora_ezidCModel_islandora_object_ingested($object) 
 function islandora_ezid_get_settings() {
   return variable_get('islandora_ezid_settings', array()) +
   array(
-    'debugMode' => FALSE,
-    'ezidService' => 'https://n2t.net/ezid/',
+    'debugMode' => FALSE, /* controls the level of log messages */
+    'ezidService' => 'https://n2t.net/ezid/', /* Expose, but change doubtful */
     'ezidNAAN' => '99999', /* 99999 is used for testing */
-    'ezidUsername' => 'YOUR_USERNAME', /* Won't work, obviously */
+    'ezidUsername' => 'YOUR_USERNAME', /* For display purposes */
     'ezidShoulder' => 'fk4', /* fk4 is used for testing */
+    'cachedARKCount' => '200', /* In case EZID is ever down */
   );
+}
+
+/**
+ * Gets EZID settings for running batch jobs.
+ *
+ * @return array
+ *   Configuration options for EZID batch.
+ */
+function islandora_ezid_batch_get_settings() {
+  return variable_get('islandora_ezid_batch_settings', array()) +
+  array(
+    'debugMode' => FALSE, /* controls the level of log messages */
+    'arkExportFileName' => 'arks-', /* the name of the file we download */
+    'numberOfARKs' => '100', /* default value for how many we want */
+    'arkCollectionName' => 'COLLECTION_NAME', /* gives us way to retrieve */
+  );
+}
+
+/**
+ * Adds an ARK caching service to Drupal's cron jobs.
+ */
+function islandora_ezid_cron() {
+  cron_for_islandora_ezid();
 }
