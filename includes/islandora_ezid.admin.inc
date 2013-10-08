@@ -15,7 +15,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  *
  * @return array
  *   Returns The EZID admin form.
- */
+*/
 function islandora_ezid_admin() {
   $form = array();
 
@@ -57,7 +57,7 @@ function islandora_ezid_admin() {
     '#title' => t('Number of cached ARKs'),
     '#element_validate' => array('ark_count_validate'),
     '#default_value' => $settings['cachedARKCount'],
-    '#description' => t('ARKs can be cached in case EZID is ever unavailable.'),
+    '#description' => t('ARKs can be cached for quicker batch processing.'),
   );
   // The username to use when interacting with EZID.
   $form['islandora_ezid_settings']['ezidUsername'] = array(
@@ -124,6 +124,7 @@ function islandora_ezid_batch() {
   $form['numberOfARKs'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of ARKs'),
+    '#element_validate' => array('reserved_count_validate'),
     '#default_value' => $settings['numberOfARKs'],
     '#description' => t('Number of ARKs we want to reserve in batch mode.'),
   );
@@ -181,6 +182,7 @@ function islandora_ezid_batch() {
 function islandora_ezid_admin_submit($form, &$form_state) {
   $op = $form_state['clicked_button']['#id'];
 
+  // FIXME: Shouldn't have to validate the form to reset it, right?
   switch ($op) {
     case 'edit-reset':
       variable_del('islandora_ezid_settings');
@@ -192,15 +194,40 @@ function islandora_ezid_admin_submit($form, &$form_state) {
  * Handles a submit from the EZID batch pane.
  */
 function islandora_ezid_batch_submit($form, &$form_state) {
-  /* cron_for_islandora_ezid(); */
-  drupal_set_message("submit");
+  $existingCount = count_reserved_arks();
+  $wantedCount = $form['numberOfARKs']['#value'];
+  $debug = $form['debugMode']['#value'];
+
+  // TODO: Set debugMode in settings.
+  
+  if ($wantedCount < $existingCount) {
+    // TODO: Process and put a file where it can be downloaded
+
+    $link = l('Download the ARKs in a CSV file', '/path/to/to/get/it');
+    drupal_set_message("The batch has been run. $link.");
+  }
+  else {
+    // TODO: Set up the file for cron to process.
+
+    if ($debug) {
+      drupal_set_message(t('The requested number of ARKs (@arknum) exceeds ' .
+          'the number of cached ARKs (@cachednum). The batch will be run and ' .
+          "an email will be sent when it's done.",
+          array('@arknum' => $wantedCount, '@cachednum' => $existingCount)));
+    }
+    else {
+      drupal_set_message(t('The requested number of ARKs exceeds the number ' .
+          'of cached ARKs. The batch will be run and an email will be sent ' .
+          "when it's done."));
+    }
+  }
 }
 
 /**
  * Handles a submit from the EZID batch pane.
  */
 function islandora_ezid_batch_reset($form, &$form_state) {
-  // We don't need to do anything, form is reset to its original state.
+  // Don't need to do anything here; the form is reset to its original state.
   drupal_set_message("The batch job form was not submitted, but reset to its" .
       " default values.");
 }
@@ -213,6 +240,7 @@ function islandora_ezid_batch_config($form, &$form_state) {
   $settings['numberOfARKs'] = $form['numberOfARKs']['#value'];
 
   variable_set('islandora_ezid_batch_settings', $settings);
+  // TODO: Do this with the debugMode setting too.
 
   drupal_set_message("The batch job form's defaults were reset to the below.");
 }
@@ -258,8 +286,26 @@ function ark_count_validate($element, &$form_state, $form) {
   if (empty($ark_count)) {
     form_error($element, t('This field is required.'));
   }
-  elseif ($ark_count < 0 || $ark_count > 5000) {
-    form_error($element, t("Please select a number between 0 and 5000"));
+  elseif (!is_whole_number($ark_count)) {
+    form_error($element, t("Supplied value isn't a whole number."));
+  }
+  elseif ($ark_count > 5000) {
+    /* TODO: 5000 is just an arbitrary ceiling; should it be higher? lower? */
+    form_error($element, t('Please select a number between 0 and 5000.'));
+  }
+}
+
+/**
+ * Validates the number of ARKs we're requesting to be reserved.
+ */
+function reserved_count_validate($element, &$form_state, $form) {
+  $ark_count = $element['#value'];
+
+  if (empty($ark_count)) {
+    form_error($element, t('This field is required.'));
+  }
+  elseif (!is_whole_number($ark_count)) {
+    form_error($element, t("Supplied value isn't a whole number."));
   }
 }
 

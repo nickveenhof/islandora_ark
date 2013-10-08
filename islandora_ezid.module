@@ -143,8 +143,45 @@ function islandora_ezid_batch_get_settings() {
 }
 
 /**
- * Adds an ARK caching service to Drupal's cron jobs.
+ * Adds an ARK caching and minting service to Drupal's cron jobs.
  */
 function islandora_ezid_cron() {
-  cron_for_islandora_ezid();
+  $settings = islandora_ezid_get_settings();
+  $username = $settings['ezidUsername'];
+  $password = $settings['ezidPassword'];
+  $shoulder = $settings['ezidShoulder'];
+  $total = $settings['cachedARKCount'];
+  $url = $settings['ezidService'];
+  $debug = $settings['debugMode'];
+  $naan = $settings['ezidNAAN'];
+
+  $count = count_reserved_arks(); /* How many ARKs do we have cached? */
+  $count = $total - $count; /* How many more reserveds do we need to add? */
+
+  if ($debug) {
+    $message = 'Need ' . $count . ' new ARKs; ';
+    $message .= ($count > 0 ? 'reserving...' : 'resting...');
+    watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
+  }
+
+  // We have nothing more to do!
+  if ($count == 0) {
+    return;
+  }
+
+  try {
+    $ezid = new EZID($url, $naan, $shoulder, $username, $password, $debug);
+
+    for ($index = 1; $index <= $count; $index++) {
+      save_ark($ezid->reserveARK());
+    }
+
+    if ($debug) {
+      $message = 'Successfully reserved ' . $count . ' new ARKs';
+      watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
+    }
+  }
+  catch (Exception $details) {
+    watchdog('ezid_cron', 'Exception: ' . $details->getMessage());
+  }
 }

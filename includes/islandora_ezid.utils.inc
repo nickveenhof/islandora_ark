@@ -65,46 +65,25 @@ function save_ark($ark, $key = NULL, $metadata = NULL) {
 }
 
 /**
- * Runs a check on the number of cached ARKs in islandora_ezid.
+ * Tests whether a supplied variable is a whole number.
+ * 
+ * @param unknown $variable
+ *   A variable to test to determine if it's a whole number.
+ *
+ * @return boolean
+ *   True if the supplied number is a boolean; else, false.
  */
-function cron_for_islandora_ezid() {
-  $settings = islandora_ezid_get_settings();
-  $username = $settings['ezidUsername'];
-  $password = $settings['ezidPassword'];
-  $shoulder = $settings['ezidShoulder'];
-  $total = $settings['cachedARKCount'];
-  $url = $settings['ezidService'];
-  $debug = $settings['debugMode'];
-  $naan = $settings['ezidNAAN'];
+function is_whole_number($variable){
+  return (is_numeric($variable) && (intval($variable) == floatval($variable)));
+}
 
+/**
+ * Counts have many ARKs have been reserved (minted but not yet assigned).
+ * 
+ * @return int
+ *   The number of ARKs that are reserved for later use.
+ */
+function count_reserved_arks() {
   $query = 'SELECT COUNT(*) FROM {islandora_ezid_arks} WHERE state = 0';
-  $count = db_query($query)->fetchField(); /* How many reserved in cache? */
-  $count = $total - $count; /* How many more reserveds do we need to add? */
-
-  if ($debug) {
-    $message = 'Need ' . $count . ' new ARKs; ';
-    $message .= ($count > 0 ? 'reserving...' : 'resting...');
-    watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
-  }
-
-  // We have nothing more to do!
-  if ($count == 0) {
-    return;
-  }
-
-  try {
-    $ezid = new EZID($url, $naan, $shoulder, $username, $password, $debug);
-
-    for ($index = 1; $index <= $count; $index++) {
-      save_ark($ezid->reserveARK());
-    }
-
-    if ($debug) {
-      $message = 'Successfully reserved ' . $count . ' new ARKs';
-      watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
-    }
-  }
-  catch (Exception $details) {
-    watchdog('ezid_cron', 'Exception: ' . $details->getMessage());
-  }
+  return db_query($query)->fetchField(); /* How many reserved in cache? */
 }
