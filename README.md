@@ -17,6 +17,8 @@ A rough plan, sure to be revised and revised again...
 * How to do "Stage 4" generically? A different module?  Or Pathauto + something custom for ARKs?
 * Multisite vs. single Drupal.  Some way for this to sit at root and work with multisites?
 * Should ARK objects be able to be put in more than one collection in the ARK manager?
+* Background loading of the ARK cache; recommend Elysia for granularity in processing cron jobs?
+* Right now it requires MySQL; fix it so that PostgreSQL is supported too?  Add ranges to db_query?
 
 ### Project Status
 

@@ -15,7 +15,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  *
  * @return array
  *   Returns The EZID admin form.
-*/
+ */
 function islandora_ezid_admin() {
   $form = array();
 
@@ -168,7 +168,7 @@ function islandora_ezid_batch() {
   );
   $form['actions']['configure'] = array(
     '#type' => 'submit',
-    '#value' => t('Reset default number'),
+    '#value' => t('Update defaults'),
     '#weight' => 3,
     '#submit' => array('islandora_ezid_batch_config'),
   );
@@ -194,31 +194,66 @@ function islandora_ezid_admin_submit($form, &$form_state) {
  * Handles a submit from the EZID batch pane.
  */
 function islandora_ezid_batch_submit($form, &$form_state) {
-  $existingCount = count_reserved_arks();
-  $wantedCount = $form['numberOfARKs']['#value'];
+  $collection = $form['arkCollectionName']['#value'];
+  $file_name = $form['arkExportFileName']['#value'];
+  $total_count = count_reserved_arks();
+  $count = $form['numberOfARKs']['#value'];
   $debug = $form['debugMode']['#value'];
 
-  // TODO: Set debugMode in settings.
-  
-  if ($wantedCount < $existingCount) {
-    // TODO: Process and put a file where it can be downloaded
+  if ($count < $total_count) {
+    // Seconds are the most granular timestamp we can use unfortunately.
+    $date = date("Y-m-d H:i:s");
 
-    $link = l('Download the ARKs in a CSV file', '/path/to/to/get/it');
-    drupal_set_message("The batch has been run. $link.");
+    // This isn't database independent... it's using the MySQL LIMIT syntax.
+    // The PostgreSQL syntax would be: LIMIT $count (without a range start).
+    // TODO: Support different/configurable queries for different databases?
+    $sql = 'UPDATE islandora_ezid_arks SET state = 1, date_assigned = :DATE,
+        date_lastupdate = :DATE WHERE id IN (SELECT id FROM (SELECT id FROM
+        islandora_ezid_arks WHERE state = 0 ORDER BY id LIMIT 0,' . $count .
+        ') tmp)';
+    $result = db_query($sql, array(':DATE' => $date));
+
+    $dir_path = file_build_uri('arks');
+    $file_path = $dir_path . '/' . $file_name;
+    $www_path = file_create_url($file_path);
+
+    // Check that the 'arks' directory exists already.
+    file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
+
+    // Open our ARK file.
+    $ark_file = fopen($file_path, 'a');
+
+    // Pulls those records we just updated so we can output their ARKs to CSV.
+    $query = 'SELECT ark FROM islandora_ezid_arks WHERE date_assigned = ? ';
+    $result = db_query_range($query . 'ORDER BY id', 0, $count, array($date));
+
+    foreach ($result as $record) {
+      if (isset($collection) && $collection != 'COLLECTION_NAME') {
+        fputcsv($ark_file, array($record->ark, $collection));
+      }
+      else {
+        fputcsv($ark_file, array($record->ark));
+      }
+    }
+
+    // Close our ARK file.
+    fclose($ark_file);
+
+    $link = l(t('Download the ARKs in spreadsheet format'), $www_path);
+    drupal_set_message(t('The batch has been run. ') . $link . '.');
   }
   else {
     // TODO: Set up the file for cron to process.
-
     if ($debug) {
-      drupal_set_message(t('The requested number of ARKs (@arknum) exceeds ' .
-          'the number of cached ARKs (@cachednum). The batch will be run and ' .
-          "an email will be sent when it's done.",
-          array('@arknum' => $wantedCount, '@cachednum' => $existingCount)));
+      drupal_set_message(t("Requested number of ARKs (@count) exceeds the
+          number of cached ARKs (@totalcount). The batch will be run and
+          an email will be sent when it's done.",
+          array('@count' => $count, '@totalcount' => $total_count)));
     }
     else {
-      drupal_set_message(t('The requested number of ARKs exceeds the number ' .
-          'of cached ARKs. The batch will be run and an email will be sent ' .
-          "when it's done."));
+      drupal_set_message(t("Requested number of ARKs exceeds the number of
+          cached ARKs. The batch will be run and an email will be sent when
+          it's done."));
     }
   }
 }
@@ -227,9 +262,9 @@ function islandora_ezid_batch_submit($form, &$form_state) {
  * Handles a submit from the EZID batch pane.
  */
 function islandora_ezid_batch_reset($form, &$form_state) {
-  // Don't need to do anything here; the form is reset to its original state.
-  drupal_set_message("The batch job form was not submitted, but reset to its" .
-      " default values.");
+  // Don't need to do anything... the form gets reset to its original state.
+  drupal_set_message("The batch job form was not submitted, but reset to its
+      default values.");
 }
 
 /**
@@ -238,11 +273,11 @@ function islandora_ezid_batch_reset($form, &$form_state) {
 function islandora_ezid_batch_config($form, &$form_state) {
   $settings = islandora_ezid_batch_get_settings();
   $settings['numberOfARKs'] = $form['numberOfARKs']['#value'];
+  $settings['debugMode'] = $form['debugMode']['#value'];
 
   variable_set('islandora_ezid_batch_settings', $settings);
-  // TODO: Do this with the debugMode setting too.
 
-  drupal_set_message("The batch job form's defaults were reset to the below.");
+  drupal_set_message("The batch job form's defaults have been reset.");
 }
 
 /**
@@ -273,7 +308,7 @@ function ezid_naan_validate($element, &$form_state, $form) {
     form_error($element, t('This field is required.'));
   }
   elseif (!preg_match("/^\d{5}$/", $naan)) {
-    form_error($element, t("This doesn't look like a NAAN (5 digit number)"));
+    form_error($element, t("This doesn't look like a five digit NAAN"));
   }
 }
 
@@ -290,7 +325,7 @@ function ark_count_validate($element, &$form_state, $form) {
     form_error($element, t("Supplied value isn't a whole number."));
   }
   elseif ($ark_count > 5000) {
-    /* TODO: 5000 is just an arbitrary ceiling; should it be higher? lower? */
+    /* TODO: 5000 is an arbitrary ceiling; should it be higher? lower? */
     form_error($element, t('Please select a number between 0 and 5000.'));
   }
 }
@@ -317,7 +352,7 @@ function ezid_shoulder_validate($element, &$form_state, $form) {
 
   /* TODO: Do we really want to enforce this convention?*/
   if (!preg_match("/^[a-z]*\d$/", $shoulder)) {
-    form_error($element, t("Convention is alpha chars terminated by a digit"));
+    form_error($element, t("Should be alpha chars terminated by a digit"));
   }
 
   /* TODO: Support multiple shoulders through this one interface? */
