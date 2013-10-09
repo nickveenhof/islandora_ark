@@ -173,7 +173,7 @@ function islandora_ezid_cron() {
     $ezid = new EZID($url, $naan, $shoulder, $username, $password, $debug);
 
     for ($index = 1; $index <= $count; $index++) {
-      save_ark($ezid->reserveARK());
+      save_ark_record($ezid->reserveARK());
     }
 
     if ($debug) {

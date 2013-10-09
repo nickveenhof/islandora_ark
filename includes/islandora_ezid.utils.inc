@@ -58,7 +58,7 @@ function export_arks() {
  * @param string $ark
  *   Newly minted ARK that should be kept in our local database as well
  */
-function save_ark($ark, $key = NULL, $metadata = NULL, $debug = FALSE) {
+function save_ark_record($ark, $key = NULL, $metadata = NULL, $debug = FALSE) {
   $curr_date = date("Y-m-d H:i:s");
 
   if (!isset($ark)) {
