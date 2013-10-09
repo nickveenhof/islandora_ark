@@ -106,6 +106,16 @@ function islandora_ezid_manage() {
 }
 
 /**
+ * Admin form for the Islandora ARK batch uploads.
+ *
+ * @return array
+ *   Returns The ARK upload form.
+ */
+function islandora_ezid_upload() {
+  $form = array();
+}
+
+/**
  * Admin form for the Islandora EZID batch interface.
  *
  * @return array

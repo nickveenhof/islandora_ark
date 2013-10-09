@@ -8,8 +8,9 @@ A rough plan, sure to be revised and revised again...
 
 * _Stage 1:_ An administrative UI for batch ARK reservations.  []
 * _Stage 2:_ An administrative UI for managing/minting reserved ARKs.  []
-* _Stage 3:_ An object page redirect for ARKs.  []
-* _Stage 4:_ A resolution mechanism for having ARKs in system URLs.  []
+* _Stage 3:_ An Islandora hook to add ARKs to metadata in need of them []
+* _Stage 4:_ An object page redirect for ARKs.  []
+* _Stage 5:_ A resolution mechanism for having ARKs in system URLs.  []
 
 *Open Questions:*
 

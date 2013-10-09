@@ -57,6 +57,15 @@ function islandora_ezid_menu() {
     'file' => 'includes/islandora_ezid.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
+  $items['admin/islandora/ezid/upload'] = array(
+    'title' => 'Upload Batch',
+    'description' => 'Uploads ARKs which have been updated since assignment',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_ezid_upload'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'includes/islandora_ezid.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
 
   return $items;
 }
