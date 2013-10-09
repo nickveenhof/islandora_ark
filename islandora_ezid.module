@@ -147,11 +147,13 @@ function islandora_ezid_batch_get_settings() {
     'debugMode' => FALSE, /* controls the level of log messages */
     'arkExportFileName' => 'arks-', /* the name of the file we download */
     'numberOfARKs' => '100', /* default value for how many we want */
-    'arkCollectionName' => 'COLLECTION_NAME', /* gives us way to retrieve */
+    'arkCollectionOrTag' => 'COLLECTION_NAME', /* gives us way to retrieve */
   );
 }
 
 /**
+ * Implements hook_cron().
+ * 
  * Adds an ARK caching and minting service to Drupal's cron jobs.
  */
 function islandora_ezid_cron() {
@@ -167,15 +169,13 @@ function islandora_ezid_cron() {
   $count = count_reserved_arks(); /* How many ARKs do we have cached? */
   $count = $total - $count; /* How many more reserveds do we need to add? */
 
-  if ($debug) {
-    $message = 'Need ' . $count . ' new ARKs; ';
-    $message .= ($count > 0 ? 'reserving...' : 'resting...');
-    watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
-  }
-
-  // We have nothing more to do!
   if ($count == 0) {
+    watchdog('ezid_cron', "Cron checked but we don't need any more ARKs");
     return;
+  }
+  elseif ($debug) {
+    $message = 'We need to reserve ' . $count . ' new ARKs';
+    watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
   }
 
   try {
@@ -191,6 +191,6 @@ function islandora_ezid_cron() {
     }
   }
   catch (Exception $details) {
-    watchdog('ezid_cron', 'Exception: ' . $details->getMessage());
+    watchdog('ezid_cron', $details->getMessage(), NULL, WATCHDOG_ERROR);
   }
 }

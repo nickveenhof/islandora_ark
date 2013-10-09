@@ -5,12 +5,12 @@
 (function($) {
 	Drupal.behaviors.IslandoraEZID = {
 		attach : function(context, settings) {
-			if ($(this).val() === "YOUR_USERNAME") {
-				$('#edit-islandora-ezid-settings-ezidusername').css("color",
-						"#bbb");
+			// This is from the admin EZID ARK settings form
+			if ($('#edit-islandora-ezid-settings-ezidusername').val() === 'YOUR_USERNAME') {
+				$('#edit-islandora-ezid-settings-ezidusername').css('color', '#bbb');
 			}
 
-			// We don't reload this form with changed data so this is sufficient
+			// We don't reload the batch form with changed data so this is sufficient
 			$('#edit-arkcollectionname').css('color', '#bbb');
 
 			/* Clear out the default value so users can enter their own. */

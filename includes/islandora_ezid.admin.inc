@@ -34,7 +34,7 @@ function islandora_ezid_admin() {
     '#title' => t('Service URL'),
     '#element_validate' => array('ezid_service_validate'),
     '#default_value' => $settings['ezidService'],
-    '#description' => t("Base URL for the EZID service (shouldn't change)."),
+    '#description' => t("URL for the EZID service (really shouldn't change)."),
   );
   // The NAAN for the institution that is minting ARKs through this service.
   $form['islandora_ezid_settings']['ezidNAAN'] = array(
@@ -138,12 +138,12 @@ function islandora_ezid_batch() {
     '#default_value' => $settings['numberOfARKs'],
     '#description' => t('Number of ARKs we want to reserve in batch mode.'),
   );
-  // An optional collection name with which we want to associate the ARKs.
-  $form['arkCollectionName'] = array(
+  // An optional collection or tag with which we want to associate the ARKs.
+  $form['arkCollectionOrTag'] = array(
     '#type' => 'textfield',
-    '#title' => t('Collection'),
-    '#default_value' => $settings['arkCollectionName'],
-    '#description' => t('An (optional) collection name for the ARKs.'),
+    '#title' => t('Collection or Tag'),
+    '#default_value' => $settings['arkCollectionOrTag'],
+    '#description' => t('An (optional) informal label or tag for the ARKs.'),
   );
   // A name of the ARK file we want to download.
   $form['arkExportFileName'] = array(
@@ -204,8 +204,8 @@ function islandora_ezid_admin_submit($form, &$form_state) {
  * Handles a submit from the EZID batch pane.
  */
 function islandora_ezid_batch_submit($form, &$form_state) {
-  $collection = $form['arkCollectionName']['#value'];
   $file_name = $form['arkExportFileName']['#value'];
+  $tag = $form['arkCollectionOrTag']['#value'];
   $total_count = count_reserved_arks();
   $count = $form['numberOfARKs']['#value'];
   $debug = $form['debugMode']['#value'];
@@ -233,13 +233,15 @@ function islandora_ezid_batch_submit($form, &$form_state) {
     // Open our ARK file.
     $ark_file = fopen($file_path, 'a');
 
+    /* TODO: output headers as first line in file */
+
     // Pulls those records we just updated so we can output their ARKs to CSV.
     $query = 'SELECT ark FROM islandora_ezid_arks WHERE date_assigned = ? ';
     $result = db_query_range($query . 'ORDER BY id', 0, $count, array($date));
 
     foreach ($result as $record) {
-      if (isset($collection) && $collection != 'COLLECTION_NAME') {
-        fputcsv($ark_file, array($record->ark, $collection));
+      if (isset($tag) && $tag != 'COLLECTION_NAME') {
+        fputcsv($ark_file, array($record->ark, $tag));
       }
       else {
         fputcsv($ark_file, array($record->ark));

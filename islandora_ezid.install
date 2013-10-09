@@ -14,31 +14,61 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  * @see islandora_islandora_required_objects()
  */
 function islandora_ezid_install() {
+  // We shouldn't have this table around, but let's remove it if we do.
   if (db_table_exists('islandora_ezid_arks')) {
-    /* Let's be cautious and export our ARKs before uninstalling. */
+    $message = 'Removing pre-existing islandora_ezid_arks table';
+    watchdog('ezid_install', $message, NULL, WATCHDOG_WARNING);
+
+    // Let's be cautious and export our ARKs before uninstalling.
     export_arks();
 
-    /* Then we can drop the table. */
+    // Then, we can drop the database table.
     drupal_uninstall_schema('islandora_ezid');
   }
 
+  // Create the EZID ARK database table.
   drupal_install_schema('islandora_ezid');
+
+  // Tests whether an old copy of our vocabulary exists before trying to add.
+  $vid = get_ezid_tag_vid();
+
+  if (isset($vid)) {
+    watchdog('ezid_install', 'Removing existing EZID tag vocabulary table');
+    remove_ezid_vocabulary();
+  }
+
+  // Create a taxonomy we can use for informal collection names and other tags.
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'EZID ARK Tags',
+    'machine_name' => 'ezid_ark_tags',
+    'description' => 'Tags used to label individual ARK records',
+    'hierarchy' => 0,
+  ));
+
+  // Remember the VID of our vocabulary so we can have easy access to it later.
+  variable_set('EZID_VOCAB_VID', get_ezid_tag_vid());
 }
 
 /**
  * Implements hook_uninstall().
  */
 function islandora_ezid_uninstall() {
-  /* Clean up our variable settings. */
+  // Remove our various variable settings...
   variable_del('islandora_ezid_settings');
+  variable_del('islandora_ezid_batch_settings');
 
-  /* Let's be cautious and export our ARKs before uninstalling. */
+  // Let's be cautious and export our ARKs before uninstalling.
   export_arks();
+
+  // Remove the tag vocabulary we created on install.
+  remove_ezid_vocabulary();
 
   /* drupal_uninstall_schema() is called automagically in D7 */
 }
 
 /**
+ * Implements hook_schema().
+ * 
  * Describes the local EZID table structure.
  */
 function islandora_ezid_schema() {
@@ -70,15 +100,29 @@ function islandora_ezid_schema() {
         'not null' => FALSE,
       ),
       /* More textual than authoritative; keeping structure simple to start. */
-      'author' => array(
-        'description' => 'The author for the object represented by the ARK.',
+      'creator' => array(
+        'description' => 'The creator for the object represented by the ARK.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
       ),
-      /* TODO: Should we be able to put them in more than one collection? */
-      'collection' => array(
-        'description' => 'Collection for the object represented by the ARK.',
+      /* More textual than authoritative; keeping structure simple to start. */
+      'publisher' => array(
+        'description' => 'The publisher for the object represented by the ARK.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      /* More textual than authoritative; keeping structure simple to start. */
+      'type' => array(
+        'description' => 'The publisher for the object represented by the ARK.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      /* More textual than authoritative; keeping structure simple to start. */
+      'date' => array(
+        'description' => 'The publisher for the object represented by the ARK.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
