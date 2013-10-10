@@ -141,10 +141,10 @@ function islandora_ezid_batch() {
   // An optional collection or tag with which we want to associate the ARKs.
   $form['arkCollectionOrTag'] = array(
     '#type' => 'textfield',
-    '#title' => t('Collection or Tag'),
+    '#title' => t('Tags'),
     '#default_value' => $settings['arkCollectionOrTag'],
     '#autocomplete_path' => 'ezid/tags/autocomplete',
-    '#description' => t('An (optional) informal label or tag for the ARKs.'),
+    '#description' => t('Comma delimited tags can be used for ARK management.'),
   );
   // A name of the ARK file we want to download.
   $form['arkExportFileName'] = array(
