@@ -11,21 +11,21 @@
 			}
 
 			// We don't reload the batch form with changed data so this is sufficient
-			$('#edit-arkcollectionname').css('color', '#bbb');
+			$('#edit-arkcollectionortag').css('color', '#bbb');
 
 			/* Clear out the default value so users can enter their own. */
 			$('#edit-islandora-ezid-settings-ezidusername').focus(function() {
-				if ($(this).val() === "YOUR_USERNAME") {
+				if ($(this).val() === 'YOUR_USERNAME') {
 					$(this).val('');
-					$(this).css("color", "black");
+					$(this).css('color', 'black');
 				}
 			});
 
 			/* Clear out the default value so users can enter their own. */
-			$('#edit-arkcollectionname').focus(function() {
-				if ($(this).val() === "COLLECTION_NAME") {
+			$('#edit-arkcollectionortag').focus(function() {
+				if ($(this).val() === 'COLLECTION_NAME') {
 					$(this).val('');
-					$(this).css("color", "black");
+					$(this).css('color', 'black');
 				}
 			});
 		}

@@ -186,11 +186,11 @@ function remove_from_array($keys, $array) {
 
 /**
  * Returns the VID for the EZID ARK tag vocubulary.
+ * 
+ * Checks machine name first, but then checks variable in case of renaming.
  */
 function get_ezid_tag_vid() {
-  // Checks machine name first but then checks variable in case of renaming.
-  $vid_query = "SELECT vid FROM taxonomy_vocabulary WHERE machine_name = ?";
-  $vid = db_query($vid_query, array('ezid_ark_tags'))->fetchObject()->vid;
+  $vid = taxonomy_vocabulary_get_names()['ezid_ark_tags']->vid;
   return isset($vid) ? $vid : variable_get('EZID_VOCAB_VID');
 }
 

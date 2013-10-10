@@ -66,8 +66,37 @@ function islandora_ezid_menu() {
     'file' => 'includes/islandora_ezid.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
+  $items['ezid/tags/autocomplete'] = array(
+    'title' => '',
+    'description' => '',
+    'page callback' => 'islandora_ezid_autocomplete',
+    'access callback' => TRUE,
+  );
 
   return $items;
+}
+
+/**
+ * Autocomplete function for EZID ARK tag field.
+ */
+function islandora_ezid_autocomplete() {
+  $vocabulary = taxonomy_get_tree(get_ezid_tag_vid());
+  $list = array();
+
+  // Add all the terms to the autocomplete list.
+  foreach ($vocabulary as $term) {
+    $term_name = check_plain($term->name);
+    $list[$term_name] = $term_name;
+  }
+
+  // Remove the dups; alternatively, we could use: $term->name [$term->tid].
+  $list = array_unique($list);
+
+  // Sort these terms to make them easier to find in a list of lots-o-terms.
+  ksort($list);
+
+  // The out-of-the-box Drupal autocomplete user interface expects json, so...
+  return drupal_json_output($list);
 }
 
 /**

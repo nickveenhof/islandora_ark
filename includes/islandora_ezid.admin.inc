@@ -143,6 +143,7 @@ function islandora_ezid_batch() {
     '#type' => 'textfield',
     '#title' => t('Collection or Tag'),
     '#default_value' => $settings['arkCollectionOrTag'],
+    '#autocomplete_path' => 'ezid/tags/autocomplete',
     '#description' => t('An (optional) informal label or tag for the ARKs.'),
   );
   // A name of the ARK file we want to download.
