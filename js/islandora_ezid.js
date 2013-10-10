@@ -11,7 +11,7 @@
 			}
 
 			// We don't reload the batch form with changed data so this is sufficient
-			$('#edit-arkcollectionortag').css('color', '#bbb');
+			$('#edit-arktagsdefault').css('color', '#bbb');
 
 			/* Clear out the default value so users can enter their own. */
 			$('#edit-islandora-ezid-settings-ezidusername').focus(function() {
@@ -22,7 +22,7 @@
 			});
 
 			/* Clear out the default value so users can enter their own. */
-			$('#edit-arkcollectionortag').focus(function() {
+			$('#edit-arktagsdefault').focus(function() {
 				if ($(this).val() === 'COLLECTION_NAME') {
 					$(this).val('');
 					$(this).css('color', 'black');

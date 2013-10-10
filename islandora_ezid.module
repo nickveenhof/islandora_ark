@@ -177,9 +177,10 @@ function islandora_ezid_batch_get_settings() {
   return variable_get('islandora_ezid_batch_settings', array()) +
   array(
     'debugMode' => FALSE, /* controls the level of log messages */
+    'labelsMode' => FALSE, /* controls whether output CSV should have labels */
     'arkExportFileName' => 'arks-', /* the name of the file we download */
     'numberOfARKs' => '100', /* default value for how many we want */
-    'arkCollectionOrTag' => 'COLLECTION_NAME', /* gives us way to retrieve */
+    'arkTagsDefault' => 'COLLECTION_NAME', /* gives us way to retrieve */
   );
 }
 

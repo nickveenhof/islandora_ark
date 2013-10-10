@@ -15,7 +15,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  *
  * @return array
  *   Returns The EZID admin form.
- */
+*/
 function islandora_ezid_admin() {
   $form = array();
 
@@ -139,10 +139,10 @@ function islandora_ezid_batch() {
     '#description' => t('Number of ARKs we want to reserve in batch mode.'),
   );
   // An optional collection or tag with which we want to associate the ARKs.
-  $form['arkCollectionOrTag'] = array(
+  $form['arkTagsDefault'] = array(
     '#type' => 'textfield',
     '#title' => t('Tags'),
-    '#default_value' => $settings['arkCollectionOrTag'],
+    '#default_value' => $settings['arkTagsDefault'],
     '#autocomplete_path' => 'ezid/tags/autocomplete',
     '#description' => t('Comma delimited tags can be used for ARK management.'),
   );
@@ -159,6 +159,13 @@ function islandora_ezid_batch() {
     '#title' => t('Debug mode'),
     '#default_value' => $settings['debugMode'],
     '#description' => t('Toggles whether logging messages should be logged.'),
+  );
+  // Labels mode.
+  $form['labelsMode'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Labels mode'),
+    '#default_value' => $settings['labelsMode'],
+    '#description' => t('Toggles whether labels should be used in the output.'),
   );
 
   // The form's actions.
@@ -206,10 +213,11 @@ function islandora_ezid_admin_submit($form, &$form_state) {
  */
 function islandora_ezid_batch_submit($form, &$form_state) {
   $file_name = $form['arkExportFileName']['#value'];
-  $tag = $form['arkCollectionOrTag']['#value'];
+  $tag = $form['arkTagsDefault']['#value'];
   $total_count = count_reserved_arks();
   $count = $form['numberOfARKs']['#value'];
   $debug = $form['debugMode']['#value'];
+  $use_labels = $form['labelsMode']['#value'];
 
   if ($count < $total_count) {
     // Seconds are the most granular timestamp we can use unfortunately.
@@ -234,7 +242,13 @@ function islandora_ezid_batch_submit($form, &$form_state) {
     // Open our ARK file.
     $ark_file = fopen($file_path, 'a');
 
-    /* TODO: output headers as first line in file */
+    if ($use_labels) {
+      $labels = array(
+        'ARK', 'TAGS', 'CREATOR', 'TITLE', 'PUBLISHER', 'DATE', 'TYPE',
+      );
+      
+      fputcsv($ark_file, $labels);
+    }
 
     // Pulls those records we just updated so we can output their ARKs to CSV.
     $query = 'SELECT ark FROM islandora_ezid_arks WHERE date_assigned = ? ';
@@ -281,12 +295,13 @@ function islandora_ezid_batch_reset($form, &$form_state) {
 }
 
 /**
- * Handles a submit from the EZID batch pane.
+ * Handles a submit to reconfigure the defaults for EZID ARK batches.
  */
 function islandora_ezid_batch_config($form, &$form_state) {
   $settings = islandora_ezid_batch_get_settings();
   $settings['numberOfARKs'] = $form['numberOfARKs']['#value'];
   $settings['debugMode'] = $form['debugMode']['#value'];
+  $settings['labelsMode'] = $form['labelsMode']['#value'];
 
   variable_set('islandora_ezid_batch_settings', $settings);
 
