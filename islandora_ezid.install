@@ -12,7 +12,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  * Implements hook_install().
  *
  * @see islandora_islandora_required_objects()
- */
+*/
 function islandora_ezid_install() {
   // We shouldn't have this table around, but let's remove it if we do.
   if (db_table_exists('islandora_ezid_arks')) {
@@ -39,10 +39,10 @@ function islandora_ezid_install() {
 
   // Create a taxonomy we can use for informal collection names and other tags.
   taxonomy_vocabulary_save((object) array(
-    'name' => 'EZID ARK Tags',
-    'machine_name' => 'ezid_ark_tags',
-    'description' => 'Tags used to label individual ARK records',
-    'hierarchy' => 0,
+  'name' => 'EZID ARK Tags',
+  'machine_name' => 'ezid_ark_tags',
+  'description' => 'Tags used to label individual ARK records',
+  'hierarchy' => 0,
   ));
 
   // Remember the VID of our vocabulary so we can have easy access to it later.
@@ -68,7 +68,7 @@ function islandora_ezid_uninstall() {
 
 /**
  * Implements hook_schema().
- * 
+ *
  * Describes the local EZID table structure.
  */
 function islandora_ezid_schema() {
@@ -76,7 +76,7 @@ function islandora_ezid_schema() {
     'description' => 'Stores reserved and minted ARKs',
     'fields' => array(
       'id' => array(
-        'description' => 'Primary key for some future use',
+        'description' => 'Primary key for use in use in islandora_ezid_tags',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -154,6 +154,32 @@ function islandora_ezid_schema() {
         'length' => 1,
         'not null' => TRUE,
       ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  // Huh, okay, so... no foreign key support in D7; we'll brute force it.
+  $schema['islandora_ezid_tags'] = array(
+    'description' => 'Stores tags for ARK records',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key for some future use',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ark_record' => array(
+        'description' => 'The primary key of the ARK record.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'tag' => array(
+        'description' => 'An EZID ARK tag.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      )
     ),
     'primary key' => array('id'),
   );
