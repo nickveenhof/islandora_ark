@@ -23,19 +23,7 @@ function islandora_ezid_menu() {
   // If Islandora is installed, we'll use its default path; otherwise, no.
   $islandora = module_exists('islandora') ? 'islandora/' : '';
 
-  if (isset($islandora)) {
-    $items['admin/' . $islandora . 'ezid'] = array(
-      'title' => 'EZID ARKs',
-      'description' => 'Configures the management of ARKs through EZID.',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('islandora_ezid_admin'),
-      'access arguments' => array('administer site configuration'),
-      'file' => 'includes/islandora_ezid.admin.inc',
-      'type' => MENU_NORMAL_ITEM,
-    );
-  }
-  // Provide two paths to this since .info's "configure" isn't dynamic.
-  $items['admin/ezid'] = array(
+  $items['admin/' . $islandora . 'ezid'] = array(
     'title' => 'EZID ARKs',
     'description' => 'Configures the management of ARKs through EZID.',
     'page callback' => 'drupal_get_form',
@@ -197,7 +185,7 @@ function islandora_ezid_batch_get_settings() {
 
 /**
  * Implements hook_cron().
- * 
+ *
  * Adds an ARK caching and minting service to Drupal's cron jobs.
  */
 function islandora_ezid_cron() {

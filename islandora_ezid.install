@@ -12,7 +12,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  * Implements hook_install().
  *
  * @see islandora_islandora_required_objects()
-*/
+ */
 function islandora_ezid_install() {
   // We shouldn't have this table around, but let's remove it if we do.
   if (db_table_exists('islandora_ezid_arks')) {
@@ -179,7 +179,7 @@ function islandora_ezid_schema() {
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
-      )
+      ),
     ),
     'primary key' => array('id'),
   );
