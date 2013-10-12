@@ -21,6 +21,10 @@ A rough plan, sure to be revised and revised again...
 * Background loading of the ARK cache; recommend Elysia for granularity in processing cron jobs?
 * Right now it requires MySQL; fix it so that PostgreSQL is supported too?  Add ranges to db_query?
 
+### Getting Started
+
+Explain what it does here...
+
 ### Project Status
 
 [![Build Status](https://travis-ci.org/ksclarke/islandora\_ezid.png?branch=master)](https://travis-ci.org/ksclarke/islandora\_ezid) [Not activated yet]
