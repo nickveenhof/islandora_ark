@@ -6,3 +6,16 @@ root {
 #islandora-ezid-admin div div#edit-actions {
   margin-top: 30px;
 }
+
+#edit-manage-display {
+
+}
+
+.ezid-column-left {
+  float: left;
+  padding-right: 60px;
+  padding-top: 1px;
+}
+
+.ezid-column-right {
+}

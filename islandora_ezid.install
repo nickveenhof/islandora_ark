@@ -63,7 +63,8 @@ function islandora_ezid_uninstall() {
   // Remove the tag vocabulary we created on install.
   remove_ezid_vocabulary();
 
-  /* drupal_uninstall_schema() is called automagically in D7 */
+  // Remove the database tables.
+  drupal_uninstall_schema('islandora_ezid');
 }
 
 /**

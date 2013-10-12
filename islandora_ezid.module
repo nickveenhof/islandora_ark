@@ -185,6 +185,25 @@ function islandora_ezid_batch_get_settings() {
 }
 
 /**
+ * Emails the result of a batch cronjob.
+ *
+ * @param unknown $key
+ *   The key associated with the generated message.
+ * @param unknown $message
+ *   The email message with variables that need to be set.
+ * @param unknown $params
+ *   Additional details passed in so that they can be added to the message.
+ */
+function islandora_ezid_mail($key, &$message, $params) {
+  $message['subject'] = t('ARK batch job finished');
+  $message['body'][] = t('Your ARK batch job has finished; @dl @link',
+      array('@dl' => 'download the file at:', '@link' => $params['link']));
+
+  $details = array('@file_name' => $params['file_name']);
+  watchdog('ezid_mail', 'Sending mail for @file_name', $details);
+}
+
+/**
  * Implements hook_cron().
  *
  * Adds an ARK caching and minting service to Drupal's cron jobs.
@@ -194,33 +213,56 @@ function islandora_ezid_cron() {
   $username = $settings['ezidUsername'];
   $password = $settings['ezidPassword'];
   $shoulder = $settings['ezidShoulder'];
+  // How many ARKs we want reserved.
   $total = $settings['cachedARKCount'];
   $url = $settings['ezidService'];
   $debug = $settings['debugMode'];
   $naan = $settings['ezidNAAN'];
+  $batch_arks = 0;
 
-  $count = count_reserved_arks(); /* How many ARKs do we have cached? */
-  $count = $total - $count; /* How many more reserveds do we need to add? */
+  // How many ARKs we have reserved.
+  $reserved = count_reserved_arks();
+  $count = $total > $reserved ? $total - $reserved : 0;
+  // Find out if we have any waiting jobs.
+  $jobs = read_cron_jobs($debug);
 
-  if ($count == 0) {
-    watchdog('ezid_cron', "Cron checked but we don't need any more ARKs");
-    return;
+  // Increment the number of ARKs needed by each of our waiting cron jobs.
+  foreach ($jobs as $job) {
+    $count += (($job['count'] + $total) < $reserved ? 0 : $job['count']);
+    $batch_arks += $job['count'];
+
+    if ($debug) {
+      $message = 'Queuing up @count new ARKs from a scheduled cron job';
+      watchdog('ezid_cron', $message, array('@count' => $job['count']));
+    }
   }
-  elseif ($debug) {
-    $message = 'We need to reserve ' . $count . ' new ARKs';
-    watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
+
+  if ($debug) {
+    if ($count == 0) {
+      watchdog('ezid_cron', "We do not need to reserve any more ARKs");
+    }
+    else {
+      $message = 'We need to reserve ' . $count . ' new ARKs';
+      watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
+    }
   }
 
   try {
     $ezid = new EZID($url, $naan, $shoulder, $username, $password, $debug);
 
+    // If $count is zero, we'll skip the process of reserving more ARKs.
     for ($index = 1; $index <= $count; $index++) {
       save_ark_record($ezid->reserveARK());
     }
 
-    if ($debug) {
+    if ($debug && $count > 0) {
       $message = 'Successfully reserved ' . $count . ' new ARKs';
       watchdog('ezid_cron', $message, NULL, WATCHDOG_DEBUG);
+    }
+
+    // Lastly, check to see if we have any cron jobs awaiting ARK assignments.
+    foreach ($jobs as $job) {
+      assign_arks($job);
     }
   }
   catch (Exception $details) {

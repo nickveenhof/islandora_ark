@@ -224,3 +224,128 @@ function remove_ezid_vocabulary() {
     watchdog('ezid_uninstall', $message, NULL, WATCHDOG_WARNING);
   }
 }
+
+/**
+ * Reads a directory and returns a list of files representing jobs to be run.
+ * 
+ * @param bool $debug
+ *   Whether debugging is turned on.
+ * 
+ * @return array
+ *   Returns the batch jobs waiting to be run.
+ */
+function read_cron_jobs($debug) {
+  $dir = drupal_realpath(file_build_uri('cron-arks'));
+  $jobs = array();
+
+  foreach (scandir($dir) as $file_name) {
+    $file = $dir . '/' . $file_name;
+
+    if (is_file($file)) {
+      if ($debug) {
+        watchdog('ezid_cron', 'Loading cron job config file: ' . $file);
+      }
+
+      $settings = parse_ini_file($file);
+      $settings['file_name'] = $file_name;
+      $settings['file'] = $file;
+      $jobs[] = $settings;
+    }
+  }
+
+  return $jobs;
+}
+
+/**
+ * Assigns ARKs that have been previously reserved.
+ * 
+ * This handles assignments that are done on-the-fly as a Web user waits and
+ * assignments that are run via the crontask (for jobs that were too large to
+ * complete on-the-fly).
+ * 
+ * @param array $config
+ *   The configuration options used to assign ARKs.
+ */
+function assign_arks($config) {
+  // Seconds are the most granular timestamp we can use unfortunately.
+  $date = date("Y-m-d H:i:s");
+  $count = $config['count'];
+  $email = $config['email'];
+  $debug = $config['debug'];
+  $label = $config['label'];
+
+  // This isn't database independent... it's using the MySQL LIMIT syntax.
+  // The PostgreSQL syntax would be: LIMIT $count (without a range start).
+  // TODO: Support different/configurable queries for different databases?
+  $sql = 'UPDATE islandora_ezid_arks SET state = 1, date_assigned = :DATE, ' .
+      'date_lastupdate = :DATE WHERE id IN (SELECT id FROM (SELECT id FROM ' .
+      'islandora_ezid_arks WHERE state = 0 ORDER BY id LIMIT 0, ' . $count .
+      ') tmp)';
+  $result = db_query($sql, array(':DATE' => $date));
+
+  $dir_path = file_build_uri('arks');
+  $file_name = $config['file_name'];
+  $file_path = $dir_path . '/' . $file_name;
+
+  if ($debug && isset($email)) {
+    $message = 'Assigning @count ARKs from a scheduled cron job: @file';
+    $details = array('@count' => $count, '@file' => $file_name);
+    watchdog('ezid', $message, $details, WATCHDOG_DEBUG);
+  }
+
+  // Check that the 'arks' directory exists already.
+  file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
+
+  // Open our ARK file.
+  $ark_file = fopen($file_path, 'a');
+
+  if ($label) {
+    $labels = array(
+      'ARK',  'URL', 'TAGS', 'CREATOR', 'TITLE', 'PUBLISHER', 'DATE', 'TYPE',
+    );
+
+    fputcsv($ark_file, $labels);
+  }
+
+  // Pulls those records we just updated so we can output their ARKs to CSV.
+  $query = 'SELECT ark FROM islandora_ezid_arks WHERE date_assigned = ? ';
+  $result = db_query_range($query . 'ORDER BY id', 0, $count, array($date));
+
+  foreach ($result as $record) {
+    if (isset($config['tags']) && $config['tags'] != 'COLLECTION_NAME') {
+      // The empty string below is for URL (that should be supplied later).
+      fputcsv($ark_file, array($record->ark, '', $config['tags']));
+    }
+    else {
+      // This would need a URL, but we don't have to leave a space for it.
+      fputcsv($ark_file, array($record->ark));
+    }
+  }
+
+  // Close our ARK file.
+  fclose($ark_file);
+
+  // If we have an email that means we're processing a scheduled cron job.
+  if (isset($email)) {
+    if ($debug) {
+      $message = 'Emailing @user the results of an ARK batch job: @file';
+      $details = array('@user' => $email, '@file' => $file_name);
+      watchdog('ezid_cron', $message, $details);
+    }
+
+    $httplink = file_create_url('public://arks/' . $file_name);
+    $params = array('link' => $httplink, 'file_name' => $file_name);
+    drupal_mail('islandora_ezid', 'cron', $email, language_default(), $params);
+
+    $dir_path = file_build_uri('cron-arks');
+    $file_path = $dir_path . '/' . $file_name;
+
+    if (!unlink($file_path)) {
+      $message = "Couldn't delete ARK cron job scheduling file: " . $file_path;
+      watchdog('ezid_cron', $message, NULL, WATCHDOG_WARNING);
+    }
+  }
+
+  // We only need this to display to website users waiting on their batch job.
+  return $file_path;
+}

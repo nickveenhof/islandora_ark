@@ -15,7 +15,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  *
  * @return array
  *   Returns The EZID admin form.
-*/
+ */
 function islandora_ezid_admin() {
   $form = array();
 
@@ -68,6 +68,7 @@ function islandora_ezid_admin() {
   );
   // The password to use when interacting with EZID.
   $form['islandora_ezid_settings']['ezidPassword'] = array(
+    /* Password is encrypted using the key in your Drupal settings file. */
     '#type' => 'password',
     '#title' => t('EZID Password'),
     '#element_validate' => array('ezid_userpass_validate'),
@@ -103,6 +104,43 @@ function islandora_ezid_admin() {
  */
 function islandora_ezid_manage() {
   $form = array();
+
+  $form['column_left'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('ezid-column-left'),
+    ),
+  );
+  $form['column_right'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array('ezid-column-right'),
+    ),
+  );
+
+  $form['column_left']['reserved'] = array(
+    '#type' => 'item',
+    '#title' => t('Reserved ARKs:'),
+    '#markup' => count_reserved_arks(),
+  );
+  $form['column_left']['assigned'] = array(
+    '#type' => 'item',
+    '#title' => t('Assigned ARKs:'),
+    '#markup' => count_assigned_arks(),
+  );
+  $form['column_left']['total'] = array(
+    '#type' => 'item',
+    '#title' => t('Total ARK Count:'),
+    '#markup' => count_arks(),
+  );
+
+  $form['column_right']['manage-display'] = array(
+    '#type' => 'item',
+    '#title' => t('ARKs'),
+    '#markup' => 'Yada <em>yada</em> yada...',
+  );
+
+  return $form;
 }
 
 /**
@@ -200,7 +238,8 @@ function islandora_ezid_batch() {
 function islandora_ezid_admin_submit($form, &$form_state) {
   $op = $form_state['clicked_button']['#id'];
 
-  // FIXME: Shouldn't have to validate the form to reset it, right?
+  // Resetting the form is used to change the default values in the database.
+  // Users can't reset the form without supplying the password; that's okay...
   switch ($op) {
     case 'edit-reset':
       variable_del('islandora_ezid_settings');
@@ -213,74 +252,72 @@ function islandora_ezid_admin_submit($form, &$form_state) {
  */
 function islandora_ezid_batch_submit($form, &$form_state) {
   $file_name = $form['arkExportFileName']['#value'];
-  $tag = $form['arkTagsDefault']['#value'];
+  $tags = $form['arkTagsDefault']['#value'];
   $total_count = count_reserved_arks();
   $count = $form['numberOfARKs']['#value'];
   $debug = $form['debugMode']['#value'];
   $use_labels = $form['labelsMode']['#value'];
 
   if ($count < $total_count) {
-    // Seconds are the most granular timestamp we can use unfortunately.
-    $date = date("Y-m-d H:i:s");
+    $config = array(
+      'label' => $use_labels,
+      'file_name' => $file_name,
+      'count' => $count,
+      'debug' => $debug,
+      'tags' => $tags,
+    );
 
-    // This isn't database independent... it's using the MySQL LIMIT syntax.
-    // The PostgreSQL syntax would be: LIMIT $count (without a range start).
-    // TODO: Support different/configurable queries for different databases?
-    $sql = 'UPDATE islandora_ezid_arks SET state = 1, date_assigned = :DATE,
-        date_lastupdate = :DATE WHERE id IN (SELECT id FROM (SELECT id FROM
-        islandora_ezid_arks WHERE state = 0 ORDER BY id LIMIT 0,' . $count .
-        ') tmp)';
-    $result = db_query($sql, array(':DATE' => $date));
+    // Assign the ARKs so they're no longer available for other records.
+    $file = assign_arks($config);
 
-    $dir_path = file_build_uri('arks');
-    $file_path = $dir_path . '/' . $file_name;
-    $www_path = file_create_url($file_path);
+    // Create a link so we can display the file for the user to download.
+    $www_path = file_create_url($file);
 
-    // Check that the 'arks' directory exists already.
-    file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
-
-    // Open our ARK file.
-    $ark_file = fopen($file_path, 'a');
-
-    if ($use_labels) {
-      $labels = array(
-        'ARK', 'TAGS', 'CREATOR', 'TITLE', 'PUBLISHER', 'DATE', 'TYPE',
-      );
-      
-      fputcsv($ark_file, $labels);
-    }
-
-    // Pulls those records we just updated so we can output their ARKs to CSV.
-    $query = 'SELECT ark FROM islandora_ezid_arks WHERE date_assigned = ? ';
-    $result = db_query_range($query . 'ORDER BY id', 0, $count, array($date));
-
-    foreach ($result as $record) {
-      if (isset($tag) && $tag != 'COLLECTION_NAME') {
-        fputcsv($ark_file, array($record->ark, $tag));
-      }
-      else {
-        fputcsv($ark_file, array($record->ark));
-      }
-    }
-
-    // Close our ARK file.
-    fclose($ark_file);
-
+    // Display the link at which the user can download the new ARKs file.
     $link = l(t('Download the ARKs in spreadsheet format'), $www_path);
     drupal_set_message(t('The batch has been run. ') . $link . '.');
   }
   else {
-    // TODO: Set up the file for cron to process.
+    global $user;
+
+    // Save the job request in a place where the cron job can pick it up.
+    $dir_path = file_build_uri('cron-arks');
+    $file_path = $dir_path . '/' . $file_name;
+
+    // Check that the 'arks' directory exists already.
+    file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
+
+    // Open our cron job scheduler file.
+    $ark_file = fopen($file_path, 'a');
+
+    // Write out the details of our job...
+    fwrite($ark_file, 'email = ' . $user->mail . PHP_EOL);
+    fwrite($ark_file, 'count = ' . $count . PHP_EOL);
+    fwrite($ark_file, 'debug = ' . $debug . PHP_EOL);
+    fwrite($ark_file, 'label = ' . $use_labels . PHP_EOL);
+
+    if (isset($tags) && $tags != 'COLLECTION_NAME') {
+      fwrite($ark_file, 'tags = ' . $tags . PHP_EOL);
+    }
+
+    // Close our cron job scheduler file.
+    fclose($ark_file);
+
     if ($debug) {
-      drupal_set_message(t("Requested number of ARKs (@count) exceeds the
-          number of cached ARKs (@totalcount). The batch will be run and
-          an email will be sent when it's done.",
-          array('@count' => $count, '@totalcount' => $total_count)));
+      $details = array(
+        '@count' => $count,
+        '@totalcount' => $total_count,
+        '@email' => $user->mail,
+      );
+
+      drupal_set_message(t('Requested number of ARKs (@count) exceeds the ' .
+          'number of cached ARKs (@totalcount). The batch will be run and ' .
+          "an email sent to @email when it's done.", $details));
     }
     else {
-      drupal_set_message(t("Requested number of ARKs exceeds the number of
-          cached ARKs. The batch will be run and an email will be sent when
-          it's done."));
+      drupal_set_message(t('Requested number of ARKs exceeds the number of ' .
+          'cached ARKs. The batch will be run and an email sent to @email ' .
+          "when it's done.", array('@email' => $user->mail)));
     }
   }
 }
@@ -290,8 +327,8 @@ function islandora_ezid_batch_submit($form, &$form_state) {
  */
 function islandora_ezid_batch_reset($form, &$form_state) {
   // Don't need to do anything... the form gets reset to its original state.
-  drupal_set_message("The batch job form was not submitted, but reset to its
-      default values.");
+  drupal_set_message('The batch job form was not submitted, but reset to its' .
+      ' default values.');
 }
 
 /**
