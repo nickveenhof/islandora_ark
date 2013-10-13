@@ -20,10 +20,10 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  * See Drupal API for more details: http://goo.gl/kyZnl
  */
 function islandora_ezid_menu() {
-  // If Islandora is installed, we'll use its default path; otherwise, no.
-  $islandora = module_exists('islandora') ? 'islandora/' : '';
+  // If Islandora is installed, we'll use its default path; otherwise, config.
+  $path = module_exists('islandora') ? 'islandora/' : 'config/search/';
 
-  $items['admin/' . $islandora . 'ezid'] = array(
+  $items['admin/' . $path . 'ezid'] = array(
     'title' => 'EZID ARKs',
     'description' => 'Configures the management of ARKs through EZID.',
     'page callback' => 'drupal_get_form',
@@ -32,7 +32,7 @@ function islandora_ezid_menu() {
     'file' => 'includes/islandora_ezid.admin.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['admin/' . $islandora . 'ezid/settings'] = array(
+  $items['admin/' . $path . 'ezid/settings'] = array(
     'title' => 'EZID Settings',
     'description' => 'Allows batch operations against EZID',
     'page callback' => 'drupal_get_form',
@@ -42,7 +42,7 @@ function islandora_ezid_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  $items['admin/' . $islandora . 'ezid/batch'] = array(
+  $items['admin/' . $path . 'ezid/batch'] = array(
     'title' => 'Run Batch',
     'description' => 'Runs EZID batch operations',
     'page callback' => 'drupal_get_form',
@@ -51,7 +51,7 @@ function islandora_ezid_menu() {
     'file' => 'includes/islandora_ezid.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/' . $islandora . 'ezid/manage'] = array(
+  $items['admin/' . $path . 'ezid/manage'] = array(
     'title' => 'Manage',
     'description' => 'Manages ARKs created with EZID',
     'page callback' => 'drupal_get_form',
@@ -60,7 +60,7 @@ function islandora_ezid_menu() {
     'file' => 'includes/islandora_ezid.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/' . $islandora . 'ezid/upload'] = array(
+  $items['admin/' . $path . 'ezid/upload'] = array(
     'title' => 'Upload Batch',
     'description' => 'Uploads ARKs which have been updated since assignment',
     'page callback' => 'drupal_get_form',
