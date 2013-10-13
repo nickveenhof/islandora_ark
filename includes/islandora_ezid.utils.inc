@@ -257,6 +257,41 @@ function read_cron_jobs($debug) {
 }
 
 /**
+ * Returns an array from a correctly formatted, comma delimited string of IPs.
+ * 
+ * @param string $value
+ *   A correctly formatted, comma delimited string of IP addresses.
+ * @return array
+ *   An array of IP addresses in string form.
+ */
+function to_ip_array($value) {
+  $ips = array();
+
+  foreach (explode(',', $value) as $ip) {
+    $ips[] = trim($ip);
+  }
+
+  return $ips;
+}
+
+/**
+ * Makes an ARK look like an ARK from Noid; for example: "id: 99999/fk40p33bq".
+ * 
+ * @param string $ark
+ *   An ARK in the form: "ark:/99999/fk40p33bq".
+ * @return string
+ *   An ARK in the form: "id: 99999/fk40p33bq"; returns 'ERROR' on error.
+ */
+function as_noid($ark) {
+  if (strpos($ark, 'ark:/') === 0) {
+    return 'id: ' . substr($ark, 5);
+  }
+  else {
+    return 'ERROR';
+  }
+}
+
+/**
  * Assigns ARKs that have been previously reserved.
  * 
  * This handles assignments that are done on-the-fly as a Web user waits and

@@ -75,8 +75,55 @@ function islandora_ezid_menu() {
     'page callback' => 'islandora_ezid_autocomplete',
     'access callback' => TRUE,
   );
+  $items['ezid/mint'] = array(
+    'title' => '',
+    'description' => '',
+    'page callback' => 'islandora_ezid_mint_ws',
+    'access callback' => TRUE,
+  );
 
   return $items;
+}
+
+/**
+ * A Web service that returns a plain text ARK when requested from a valid IP.
+ * 
+ * @param string $as_noid
+ *   Responds as Noid does when $as_noid == "as_noid".
+ */
+function islandora_ezid_mint_ws($as_noid = FALSE) {
+  $settings = islandora_ezid_get_settings();
+  $allowed_ips = to_ip_array($settings['allowedIPs']);
+  $user_ip = ip_address();
+  $access_allowed = FALSE;
+
+  // Check to see if the client IP address is one of the allowed ones.
+  foreach ($allowed_ips as $ip) {
+    if ($ip == $user_ip) {
+      $access_allowed = TRUE;
+    }
+  }
+
+  // If it's not, return an access denied page.
+  if (!$access_allowed) {
+    return drupal_access_denied();
+  }
+
+  try {
+    // For now, do this for each request rather than relying on the cache.
+    $ark = (new EZID())->reserve_ark();
+    save_ark_record($ark);
+    
+    // Return just plain text.
+    drupal_add_http_header('Content-Type', 'text/plain');
+    
+    // Print here instead of 'return' because we want plain text output.
+    print $as_noid == 'as_noid' ? as_noid($ark) : $ark;
+  }
+  catch (Exception $details) {
+    watchdog('ezid_mint', $details->getMessage(), NULL, WATCHDOG_ERROR);
+    print "ERROR";
+  }
 }
 
 /**
@@ -164,6 +211,7 @@ function islandora_ezid_get_settings() {
     'ezidUsername' => 'YOUR_USERNAME', /* For display purposes */
     'ezidShoulder' => 'fk4', /* fk4 is used for testing */
     'cachedARKCount' => '200', /* In case EZID is ever down */
+    'allowedIPs' => '', /* IP addresses allowed to access the Web service. */
   );
 }
 
@@ -210,14 +258,9 @@ function islandora_ezid_mail($key, &$message, $params) {
  */
 function islandora_ezid_cron() {
   $settings = islandora_ezid_get_settings();
-  $username = $settings['ezidUsername'];
-  $password = $settings['ezidPassword'];
-  $shoulder = $settings['ezidShoulder'];
   // How many ARKs we want reserved.
   $total = $settings['cachedARKCount'];
-  $url = $settings['ezidService'];
   $debug = $settings['debugMode'];
-  $naan = $settings['ezidNAAN'];
   $batch_arks = 0;
 
   // How many ARKs we have reserved.
@@ -248,11 +291,11 @@ function islandora_ezid_cron() {
   }
 
   try {
-    $ezid = new EZID($url, $naan, $shoulder, $username, $password, $debug);
+    $ezid = new EZID();
 
     // If $count is zero, we'll skip the process of reserving more ARKs.
     for ($index = 1; $index <= $count; $index++) {
-      save_ark_record($ezid->reserveARK());
+      save_ark_record($ezid->reserve_ark());
     }
 
     if ($debug && $count > 0) {

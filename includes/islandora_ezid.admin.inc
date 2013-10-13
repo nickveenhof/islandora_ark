@@ -15,7 +15,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  *
  * @return array
  *   Returns The EZID admin form.
- */
+*/
 function islandora_ezid_admin() {
   $form = array();
 
@@ -58,6 +58,13 @@ function islandora_ezid_admin() {
     '#element_validate' => array('ark_count_validate'),
     '#default_value' => $settings['cachedARKCount'],
     '#description' => t('ARKs can be cached for quicker batch processing.'),
+  );
+  $form['islandora_ezid_settings']['allowedIPs'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Allowed IPs'),
+    '#element_validate' => array('ws_ip_validate'),
+    '#default_value' => $settings['allowedIPs'],
+    '#description' => t('IP addresses allowed to connect to the Web service.'),
   );
   // The username to use when interacting with EZID.
   $form['islandora_ezid_settings']['ezidUsername'] = array(
@@ -343,6 +350,35 @@ function islandora_ezid_batch_config($form, &$form_state) {
   variable_set('islandora_ezid_batch_settings', $settings);
 
   drupal_set_message("The batch job form's defaults have been reset.");
+}
+
+function ws_ip_validate($element, &$form_state, $form) {
+  $ips = trim($element['#value']);
+
+  if (isset($ips)) {
+    foreach (explode(',', $ips) as $ip) {
+      $ip = trim($ip);
+
+      // TODO: Handle IPv6 addresses (check for colons and process differently).
+      $parts = explode('.', $ip);
+
+      if (count($parts) != 4) {
+        form_error($element, t("Doesn't have four parts like an IPv4 address"));
+      }
+      else {
+        foreach ($parts as $part) {
+          if (!is_numeric($part)) {
+            $details = array('@value' => $part);
+            form_error($element, t("'@value' isn't a number", $details));
+          }
+          elseif (!($part >= 0 && $part <= 255)) {
+            $details = array('@value' => $part);
+            form_error($element, t("@value isn't in range 0 to 255", $details));
+          }
+        }
+      }
+    }
+  }
 }
 
 /**

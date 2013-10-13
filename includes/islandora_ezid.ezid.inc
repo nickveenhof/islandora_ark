@@ -64,9 +64,35 @@ class EZID {
    * @param bool $debug
    *   Whether debugging is on
    */
-  public function __construct($service, $naan, $shoulder, $username, $password,
-      $debug = FALSE) {
-    $url = $this->endsWith($service, '/') ? rtrim($service, '/') : $service;
+  public function __construct($service = NULL, $naan = NULL, $shoulder = NULL, 
+      $username = NULL, $password = NULL, $debug = NULL) {
+    $settings = islandora_ezid_get_settings();
+
+    if (!isset($username)) {
+      $username = $settings['ezidUsername'];
+    }
+
+    if (!isset($password)) {
+      $password = $settings['ezidPassword'];
+    }
+
+    if (!isset($shoulder)) {
+      $shoulder = $settings['ezidShoulder'];
+    }
+
+    if (!isset($service)) {
+      $service = $settings['ezidService'];
+    }
+
+    if (!isset($debug)) {
+      $debug = $settings['debugMode'];
+    }
+
+    if (!isset($naan)) {
+      $naan = $settings['ezidNAAN'];
+    }
+
+    $url = $this->ends_with($service, '/') ? rtrim($service, '/') : $service;
     $auth_data = $username . ':' . (isset($password) ? $password : '');
     $headers = array('Authorization' => 'Basic ' . base64_encode($auth_data));
     $options = array('headers' => $headers);
@@ -79,7 +105,8 @@ class EZID {
     if ($debug) {
       $ssl_version = curl_version()['ssl_version'];
 
-      watchdog('ezid', 'Connecting to: ' . check_url($url . '/login'));
+      $message = 'Connecting to: ' . check_url($url . '/login');
+      watchdog('ezid', $message, NULL, WATCHDOG_DEBUG);
 
       if (isset($ssl_version)) {
         $message = 'Using SSL version: ' . $ssl_version;
@@ -113,12 +140,13 @@ class EZID {
   /**
    * Reserves and caches an ARK for later use.
    */
-  public function reserveARK() {
+  public function reserve_ark() {
     $reserve_path = "/shoulder/ark:/" . $this->naan . '/' . $this->shoulder;
     $request = check_url($this->url . $reserve_path);
 
     if ($this->debug) {
-      watchdog('ezid', 'Requesting new ARK: ' . $request, NULL, WATCHDOG_DEBUG);
+      $message = 'Requesting new ARK: ' . $request;
+      watchdog('ezid', $message, NULL, WATCHDOG_DEBUG);
     }
 
     // What we send to EZID to get it to reserve a new ARK for us.
@@ -159,17 +187,6 @@ class EZID {
   }
 
   /**
-   * Destructor for EZID object.
-   */
-  public function __destruct() {
-    var_dump($this->shoulder);
-    var_dump($this->cookie);
-    var_dump($this->debug);
-    var_dump($this->naan);
-    var_dump($this->url);
-  }
-
-  /**
    * Searches for substring at the end of the supplied string.
    *
    * @param string $str
@@ -180,7 +197,7 @@ class EZID {
    * @return bool
    *   True if the substring is found at the end of the string; else, false
    */
-  protected function endsWith($str, $substr) {
+  protected function ends_with($str, $substr) {
     return $substr === "" || substr($str, -strlen($substr)) === $substr;
   }
 }
