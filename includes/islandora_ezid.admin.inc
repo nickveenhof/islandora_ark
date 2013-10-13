@@ -425,9 +425,9 @@ function ark_count_validate($element, &$form_state, $form) {
   elseif (!is_whole_number($ark_count)) {
     form_error($element, t("Supplied value isn't a whole number."));
   }
-  elseif ($ark_count > 5000) {
-    /* TODO: 5000 is an arbitrary ceiling; should it be higher? lower? */
-    form_error($element, t('Please select a number between 0 and 5000.'));
+  elseif ($ark_count > 10000) {
+    /* TODO: 10000 is an arbitrary ceiling; should it be higher? lower? */
+    form_error($element, t('Please select a number between 0 and 10000.'));
   }
 }
 
