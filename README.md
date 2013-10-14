@@ -1,29 +1,18 @@
 # islandora_ezid
 
-An EZID Archival Resource Key (ARK) management interface for Islandora.
+An [EZID](http://n2t.net/ezid/ "EZID")-based Archival Resource Key ([ARK](http://en.wikipedia.org/wiki/Archival\_Resource\_Key "'Archival Resource Key' on Wikipedia")) management interface for [Islandora](http://islandora.ca/ "Islandora website") and/or [Drupal](https://drupal.org/ "Drupal website").  This module wraps the [UC3](http://www.cdlib.org/services/uc3/ "University of California Curation Center") EZID service in a Drupal environment and seeks to provide native support for ARKs in Drupal and Islandora.
 
 ### Introduction
 
-A rough plan, sure to be revised and revised again...
+There will be several stages to this project.  It's a work in progress.  This document describes where the project is now and where it wants to go in the future.
 
-* _Stage 1:_ An administrative UI for batch ARK reservations.  []
-* _Stage 2:_ An administrative UI for managing/minting reserved ARKs.  []
-* _Stage 3:_ An Islandora hook to add ARKs to metadata in need of them []
-* _Stage 4:_ An object page redirect for ARKs.  []
-* _Stage 5:_ A resolution mechanism for having ARKs in system URLs.  []
+At this point, a configurable number of ARKs are "reserved" and stored in a local database "cache" via a regular cron job.  There is also an administrative user interface through which batch jobs can be run.  A user may request a specific number of ARKs to be "assigned".  If that request can be satisfied by the ARKs in the database cache, a spreadsheet of assigned ARKs is returned.  If that number exceeds the number of ARKs in the cache, then a cron job is scheduled and an email is sent to the user after the scheduled job has been completed.  The email will contain a hypertext link to a downloadable spreadsheet of newly assigned ARKs.
 
-*Open Questions:*
+There is also a web service from which external programs can request an ARK.  It has its own syntax (e.g., just returning a plain text ARK) and it can, alternatively, mimic the response of Noid (the most popular ARK minter).
 
-* Allow more than one shoulder to be minted and managed?
-* How to do "Stage 4" generically? A different module?  Or Pathauto + something custom for ARKs?
-* Multisite vs. single Drupal.  Some way for this to sit at root and work with multisites?
-* Should ARK objects be able to be put in more than one collection in the ARK manager?
-* Background loading of the ARK cache; recommend Elysia for granularity in processing cron jobs?
-* Right now it requires MySQL; fix it so that PostgreSQL is supported too?  Add ranges to db_query?
+### Installation
 
-### Getting Started
-
-Explain what it does here...
+Write something here...
 
 ### Project Status
 
@@ -31,7 +20,7 @@ Explain what it does here...
 
 ### License
 
-The BSD-3-Clause license used by the University of California. See LICENSE file.
+The BSD-3-Clause license used by the University of California. See [LICENSE](https://raw.github.com/ksclarke/islandora_ezid/master/LICENSE "Project license") file.
 
 ### Contact
 
