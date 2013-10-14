@@ -111,12 +111,12 @@ function islandora_ezid_mint_ws($as_noid = FALSE) {
 
   try {
     // For now, do this for each request rather than relying on the cache.
-    $ark = (new EZID())->reserve_ark();
+    $ark = (new EZID())->reserveARK();
     save_ark_record($ark);
-    
+
     // Return just plain text.
     drupal_add_http_header('Content-Type', 'text/plain');
-    
+
     // Print here instead of 'return' because we want plain text output.
     print $as_noid == 'as_noid' ? as_noid($ark) : $ark;
   }
@@ -295,7 +295,7 @@ function islandora_ezid_cron() {
 
     // If $count is zero, we'll skip the process of reserving more ARKs.
     for ($index = 1; $index <= $count; $index++) {
-      save_ark_record($ezid->reserve_ark());
+      save_ark_record($ezid->reserveARK());
     }
 
     if ($debug && $count > 0) {

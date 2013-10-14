@@ -1,2 +1,7 @@
 # Ignore all ARK export files
 exports/arks-*.csv
+
+# Project independent configurations (like build directories) are put in the
+# global .gitignore file; for an example:
+#
+#   https://raw.github.com/ksclarke/dot-files/master/.gitignore

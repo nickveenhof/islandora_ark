@@ -261,6 +261,7 @@ function read_cron_jobs($debug) {
  * 
  * @param string $value
  *   A correctly formatted, comma delimited string of IP addresses.
+ *
  * @return array
  *   An array of IP addresses in string form.
  */
@@ -279,6 +280,7 @@ function to_ip_array($value) {
  * 
  * @param string $ark
  *   An ARK in the form: "ark:/99999/fk40p33bq".
+ *
  * @return string
  *   An ARK in the form: "id: 99999/fk40p33bq"; returns 'ERROR' on error.
  */

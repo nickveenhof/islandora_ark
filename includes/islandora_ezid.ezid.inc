@@ -64,7 +64,7 @@ class EZID {
    * @param bool $debug
    *   Whether debugging is on
    */
-  public function __construct($service = NULL, $naan = NULL, $shoulder = NULL, 
+  public function __construct($service = NULL, $naan = NULL, $shoulder = NULL,
       $username = NULL, $password = NULL, $debug = NULL) {
     $settings = islandora_ezid_get_settings();
 
@@ -92,7 +92,7 @@ class EZID {
       $naan = $settings['ezidNAAN'];
     }
 
-    $url = $this->ends_with($service, '/') ? rtrim($service, '/') : $service;
+    $url = $this->endsWith($service, '/') ? rtrim($service, '/') : $service;
     $auth_data = $username . ':' . (isset($password) ? $password : '');
     $headers = array('Authorization' => 'Basic ' . base64_encode($auth_data));
     $options = array('headers' => $headers);
@@ -140,7 +140,7 @@ class EZID {
   /**
    * Reserves and caches an ARK for later use.
    */
-  public function reserve_ark() {
+  public function reserveARK() {
     $reserve_path = "/shoulder/ark:/" . $this->naan . '/' . $this->shoulder;
     $request = check_url($this->url . $reserve_path);
 
@@ -197,7 +197,7 @@ class EZID {
    * @return bool
    *   True if the substring is found at the end of the string; else, false
    */
-  protected function ends_with($str, $substr) {
+  protected function endsWith($str, $substr) {
     return $substr === "" || substr($str, -strlen($substr)) === $substr;
   }
 }

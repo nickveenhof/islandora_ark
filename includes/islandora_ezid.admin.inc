@@ -15,7 +15,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  *
  * @return array
  *   Returns The EZID admin form.
-*/
+ */
 function islandora_ezid_admin() {
   $form = array();
 
@@ -352,6 +352,16 @@ function islandora_ezid_batch_config($form, &$form_state) {
   drupal_set_message("The batch job form's defaults have been reset.");
 }
 
+/**
+ * Validates the comma delimited list of IPs.
+ * 
+ * @param unknown $element
+ *   The element associated with the allowedIPs variable.
+ * @param unknown $form_state
+ *   The current state of the admin form.
+ * @param unknown $form
+ *   A reference to the form itself.
+ */
 function ws_ip_validate($element, &$form_state, $form) {
   $ips = trim($element['#value']);
 

@@ -10,9 +10,27 @@ At this point, a configurable number of ARKs are "reserved" and stored in a loca
 
 There is also a web service from which external programs can request an ARK.  It has its own syntax (e.g., just returning a plain text ARK) and it can, alternatively, mimic the response of Noid (the most popular ARK minter).
 
+The next step is to assign ARKs to newly ingested Islandora and Drupal records that don't have them and to ensure that newly ingested records that do have ARKs are registered with EZID.  EZID keeps metadata about each record that has an ARK (and provides its own search and management interface, of course).
+
 ### Installation
 
-Write something here...
+Right now, installation is done through a checkout of the code from GitHub.  A more standard Drupal way (i.e., a downloadable tar.gz) will be available once the project approaches a more stable state.  Currently, there is also a `reload_mod` Bash script which will completely uninstall and reinstall the module (dropping old database tables, etc.).  It requires Drush be installed.
+
+### Configuration and Use
+
+For configuration assistance, please consult the project's [website](http://projects.freelibrary.info/islandora_ezid/configuring.html "How to configure Islandora EZID").  Information about how to use islandora_ezid can also be found on the project's [website](http://projects.freelibrary.info/islandora_ezid/using.html "How to use Islandora EZID").
+
+### Development Tips
+
+If you want to develop the islandora\_ezid code yourself, you'll probably notice there is an Ant _and_ Maven build script.  You can use whichever you prefer:
+
+    ant build
+
+or
+
+    mvn install
+
+Both will run the tests and a perform a code analysis.  If there are code style problems with the code, the build will fail with a notice about the changes that need to be made.  The only difference between the two build options is that Maven is also used to build and deploy the project's website (using `mvn site` and `mvn site:deploy`).  For what it's worth, if you choose to use Maven, you still need to have Ant installed on your system.
 
 ### Project Status
 
