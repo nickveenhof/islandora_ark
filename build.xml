@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="islandora_openseadragon" default="build">
+<project name="islandora_ezid" default="build">
   <!--
       Optional build properties allow outputting phpcs errors to the console.
       To use, add this to the optional properties file: console-results=true
@@ -114,12 +114,5 @@
       />
     </exec>
   </target>
-
-<!--  <target name="test">
-    <exec executable="drush">
-      <arg line="test-run -\-xml=${basedir}/target/test 'Islandora Openseadragon'"
-      />
-    </exec>
-  </target>-->
 
 </project>
