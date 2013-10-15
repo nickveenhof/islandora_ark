@@ -21,7 +21,7 @@ env:
 
 before_install:
 
-  - composer selfupdate
+  - composer self-update
 
 install:
 
@@ -34,11 +34,13 @@ install:
   - pear upgrade-all
   - pear channel-discover pear.drush.org
   - pear channel-discover pear.phpunit.de
+  - pear channel-discover pear.pdepend.org
   - pear install --alldeps drush/drush
   - pear install --alldeps pear/PHP_CodeSniffer
   - pear install --alldeps phpunit/PHPUnit_Selenium
   - pear install --alldeps pear.phpunit.de/phpcpd
   - pear install --alldeps pear.phpunit.de/phploc
+  - pear install --alldeps pdepend/PHP_Depend
   - phpenv rehash
 
   # Install Drupal and initialize a default site
