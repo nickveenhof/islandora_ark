@@ -21,7 +21,7 @@ env:
 
 before_install:
  - sudo apt-get install -qq php5-cli
- - sudo $HOME/.phpenv/versions/`php -r 'echo phpversion();'`/bin/composer.phar self-update
+ - sudo php $HOME/.phpenv/versions/`php -r 'echo phpversion();'`/bin/composer.phar self-update
  - sudo apt-get install -qq doxygen
 
 install:
