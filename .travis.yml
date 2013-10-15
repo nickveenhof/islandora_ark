@@ -21,7 +21,8 @@ env:
 
 before_install:
 
-  - composer self-update
+  - composer.phar self-update
+  - sudo apt-get install -qq doxygen
 
 install:
 
