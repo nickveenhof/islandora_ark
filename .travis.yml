@@ -40,6 +40,7 @@ install:
  - pear install --alldeps phpqatools/PHP_CodeBrowser
  - pear install pdepend/PHP_Depend
  - phpenv rehash
+ - sudo find / -name CodeSniffer
 
  # Install Drupal and initialize a default site
  - drush -y dl drupal --drupal-project-rename=drupal --destination=$TRAVIS_BUILD_DIR/../
