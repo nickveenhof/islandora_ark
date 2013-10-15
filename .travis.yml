@@ -40,7 +40,7 @@ install:
   - pear install --alldeps phpunit/PHPUnit_Selenium
   - pear install --alldeps pear.phpunit.de/phpcpd
   - pear install --alldeps pear.phpunit.de/phploc
-  - pear install --alldeps pdepend/PHP_Depend
+  - pear install pdepend/PHP_Depend
   - phpenv rehash
 
   # Install Drupal and initialize a default site
