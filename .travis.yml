@@ -28,28 +28,28 @@ install:
  # Create MySQL Database
  - mysql -e "create database drupal;"
 
-  # Install Drush and PHP libraries
-  - pear upgrade --force pear
-  - pear upgrade --force Console_GetoptPlus
-  - pear upgrade-all
-  - pear channel-discover pear.drush.org
-  - pear channel-discover pear.phpunit.de
-  - pear channel-discover pear.pdepend.org
-  - pear install --alldeps drush/drush
-  - pear install --alldeps pear/PHP_CodeSniffer
-  - pear install --alldeps phpunit/PHPUnit_Selenium
-  - pear install --alldeps pear.phpunit.de/phpcpd
-  - pear install --alldeps pear.phpunit.de/phploc
-  - pear install pdepend/PHP_Depend
-  - phpenv rehash
+ # Install Drush and PHP libraries
+ - pear upgrade --force pear
+ - pear upgrade --force Console_GetoptPlus
+ - pear upgrade-all
+ - pear channel-discover pear.drush.org
+ - pear channel-discover pear.phpunit.de
+ - pear channel-discover pear.pdepend.org
+ - pear install --alldeps drush/drush
+ - pear install --alldeps pear/PHP_CodeSniffer
+ - pear install --alldeps phpunit/PHPUnit_Selenium
+ - pear install --alldeps pear.phpunit.de/phpcpd
+ - pear install --alldeps pear.phpunit.de/phploc
+ - pear install pdepend/PHP_Depend
+ - phpenv rehash
 
-  # Install Drupal and initialize a default site
-  - drush -y dl drupal --drupal-project-rename=drupal --destination=$TRAVIS_BUILD_DIR/../
-  - drush -y -r ../drupal si standard --sites-subdir=default --account-name=travis --account-pass=travis --db-url=mysql://root@localhost/drupal --site-name=localhost
-  - drush -y -r ../drupal dl coder
-  - drush -y -r ../drupal en coder
-  - drush -y -r ../drupal en coder_review
-  - drush -y -r ../drupal cc all
+ # Install Drupal and initialize a default site
+ - drush -y dl drupal --drupal-project-rename=drupal --destination=$TRAVIS_BUILD_DIR/../
+ - drush -y -r ../drupal si standard --sites-subdir=default --account-name=travis --account-pass=travis --db-url=mysql://root@localhost/drupal --site-name=localhost
+ - drush -y -r ../drupal dl coder
+ - drush -y -r ../drupal en coder
+ - drush -y -r ../drupal en coder_review
+ - drush -y -r ../drupal cc all
 
   # Install FreeLibrary theme, enable it, and set it as the default
   #- mkdir -p ../drupal/sites/all/themes/hashtagbus
