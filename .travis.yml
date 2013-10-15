@@ -1,0 +1,89 @@
+branches:
+ only:
+  - master
+
+language: php
+
+php:
+  - "5.5"
+
+mysql:
+  database: drupal
+  username: root
+  encoding: utf8
+
+env:
+ global:
+  - secure: "MM3ILzTgjHxd3yeoRWPByKn0dckk+8XPeKI6YRZV38/Nd6nfe/S1wUaPGD3KJ2E/1wU7ifstkQTxndom5WhIlsOLCKLmJqeIMJ4lnCP5upl01Ec7K8ui8eQrHCjhCVgDJ4csAEOWqVP09uBKxJZ1DC7jMY3ItQeI+wMQ9GQ4D/8="
+  - secure: "bmv4L31adCSvfmiex1YctKq53qjolZgEw7UuBp+IIxtMFUgCaQeMLcRC7wczWAsD1EolxDRqaantzeZrv9OhC8A7piZ4apa7mDLiIvkmhYFFon08Y0gxwYHRon34JolgAafi8p0s7f1Di2g+QvusjjK00cbanmwf100K2H71I4w="
+  - secure: "LSoR3nbALUkpi8xM6exAzN0D+ZDUwI2kT9uB2ZI2+z0micgLTuU7fDWD6yG6JEAIoN5e4To+Ih16pgtZZUjcdNLNzReF0IEVlauB/CopNbCK0hkpnzLVcb8wvgrz900x03j77ee45biw+10LlDNYdVlWebEnsTgu1khnVlVFqZE="
+  - secure: "O3udVAJvvuUr9xACkgzo1V93M1G/RMx0zIhk41Qg62zjGrhAqoc+FkJpwl6N3sUNsh5gkpJC9VUGec7RFfaSdP+g8rKyhXbaTazNXYFJaBC+bjJVyY5tlRM3LRvcOZMyGvpCb0STBfVNUvNLs1fafnunn7Z8znaeCHmwVUydTSw="
+
+install:
+
+  # Create MySQL Database
+  - mysql -e "create database drupal;"
+
+  # Install Drush and PHP libraries
+  - pear upgrade --force pear
+  - pear upgrade --force Console_GetoptPlus
+  - pear upgrade-all
+  - pear channel-discover pear.drush.org
+  - pear channel-discover pear.phpunit.de
+  - pear install --alldeps drush/drush
+  - pear install --alldeps pear/PHP_CodeSniffer
+  - pear install --alldeps phpunit/PHPUnit_Selenium
+  - pear install --alldeps pear.phpunit.de/phpcpd
+  - phpenv rehash
+
+  # Install Drupal and initialize a default site
+  - drush -y dl drupal --drupal-project-rename=drupal --destination=$TRAVIS_BUILD_DIR/../
+  - drush -y -r ../drupal si standard --sites-subdir=default --account-name=travis --account-pass=travis --db-url=mysql://root@localhost/drupal --site-name=localhost
+  - drush -y -r ../drupal dl coder
+  - drush -y -r ../drupal en coder
+  - drush -y -r ../drupal en coder_review
+  - drush -y -r ../drupal cc all
+
+  # Install FreeLibrary theme, enable it, and set it as the default
+  #- mkdir -p ../drupal/sites/all/themes/hashtagbus
+  #- cp -r * ../drupal/sites/all/themes/hashtagbus
+  #- drush -y -r ../drupal en hashtagbus
+  #- drush -y -r ../drupal vset theme_default hashtagbus
+
+before_script:
+
+  # Setup display for Selenium
+  - export DISPLAY=:99.0
+  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+  - sleep 5
+
+  # Start Drupal (needs to be done from drupal dir, it seems?)
+  - cd ../drupal
+  - drush rs --php-cgi=~/.phpenv/shims/php-cgi --server=builtin 8080 > /dev/null 2>&1 &
+  - cd ../islandora_ezid
+  - sleep 5
+
+  # Start Selenium
+  - wget http://selenium.googlecode.com/files/selenium-server-standalone-2.33.0.jar
+  - java -jar selenium-server-standalone-2.33.0.jar -p 4444 > /dev/null 2>&1 &
+  - sleep 10
+
+script:
+
+  # Run the build file
+  - ant
+
+  # Run PHPUnit
+  - phpunit --verbose $TRAVIS_BUILD_DIR/tests/test.php
+
+notifications:
+ email:
+  recipients:
+   ksclarke@gmail.com
+  on_failure: change
+  on_success: change
+ irc:
+  channels:
+   "chat.freenode.net#freelibrary"
+  on_failure: always
+  on_success: always
