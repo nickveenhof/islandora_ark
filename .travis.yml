@@ -51,37 +51,37 @@ install:
  - drush -y -r ../drupal en coder_review
  - drush -y -r ../drupal cc all
 
-  # Install FreeLibrary theme, enable it, and set it as the default
-  #- mkdir -p ../drupal/sites/all/themes/hashtagbus
-  #- cp -r * ../drupal/sites/all/themes/hashtagbus
-  #- drush -y -r ../drupal en hashtagbus
-  #- drush -y -r ../drupal vset theme_default hashtagbus
+ # Install FreeLibrary theme, enable it, and set it as the default
+ #- mkdir -p ../drupal/sites/all/themes/hashtagbus
+ #- cp -r * ../drupal/sites/all/themes/hashtagbus
+ #- drush -y -r ../drupal en hashtagbus
+ #- drush -y -r ../drupal vset theme_default hashtagbus
 
 before_script:
 
-  # Setup display for Selenium
-  - export DISPLAY=:99.0
-  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
-  - sleep 5
+ # Setup display for Selenium
+ - export DISPLAY=:99.0
+ - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
+ - sleep 5
 
-  # Start Drupal (needs to be done from drupal dir, it seems?)
-  - cd ../drupal
-  - drush rs --php-cgi=~/.phpenv/shims/php-cgi --server=builtin 8080 > /dev/null 2>&1 &
-  - cd ../islandora_ezid
-  - sleep 5
+ # Start Drupal (needs to be done from drupal dir, it seems?)
+ - cd ../drupal
+ - drush rs --php-cgi=~/.phpenv/shims/php-cgi --server=builtin 8080 > /dev/null 2>&1 &
+ - cd ../islandora_ezid
+ - sleep 5
 
-  # Start Selenium
-  - wget http://selenium.googlecode.com/files/selenium-server-standalone-2.33.0.jar
-  - java -jar selenium-server-standalone-2.33.0.jar -p 4444 > /dev/null 2>&1 &
-  - sleep 10
+ # Start Selenium
+ - wget http://selenium.googlecode.com/files/selenium-server-standalone-2.33.0.jar
+ - java -jar selenium-server-standalone-2.33.0.jar -p 4444 > /dev/null 2>&1 &
+ - sleep 10
 
 script:
 
-  # Run the build file
-  - ant
+ # Run the build file
+ - ant
 
-  # Run PHPUnit
-  - phpunit --verbose $TRAVIS_BUILD_DIR/tests/test.php
+ # Run PHPUnit
+ - phpunit --verbose $TRAVIS_BUILD_DIR/tests/test.php
 
 notifications:
  email:
