@@ -31,11 +31,13 @@ install:
  - pear channel-discover pear.drush.org
  - pear channel-discover pear.phpunit.de
  - pear channel-discover pear.pdepend.org
+ - pear channel-discover pear.phpqatools.org
  - pear install --alldeps drush/drush
  - pear install --alldeps pear/PHP_CodeSniffer
  - pear install --alldeps phpunit/PHPUnit_Selenium
  - pear install --alldeps pear.phpunit.de/phpcpd
  - pear install --alldeps pear.phpunit.de/phploc
+ - pear install --alldeps phpqatools/PHP_CodeBrowser
  - pear install pdepend/PHP_Depend
  - phpenv rehash
 
