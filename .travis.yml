@@ -21,7 +21,7 @@ env:
 
 before_install:
 
-  - $HOME/.phpenv/versions/$TRAVIS_PHP_VERSION/bin/composer.phar self-update
+  - sudo $HOME/.phpenv/versions/$TRAVIS_PHP_VERSION/bin/composer.phar self-update
   - sudo apt-get install -qq doxygen
 
 install:
