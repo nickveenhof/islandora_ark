@@ -19,16 +19,12 @@ env:
   - secure: "LSoR3nbALUkpi8xM6exAzN0D+ZDUwI2kT9uB2ZI2+z0micgLTuU7fDWD6yG6JEAIoN5e4To+Ih16pgtZZUjcdNLNzReF0IEVlauB/CopNbCK0hkpnzLVcb8wvgrz900x03j77ee45biw+10LlDNYdVlWebEnsTgu1khnVlVFqZE="
   - secure: "O3udVAJvvuUr9xACkgzo1V93M1G/RMx0zIhk41Qg62zjGrhAqoc+FkJpwl6N3sUNsh5gkpJC9VUGec7RFfaSdP+g8rKyhXbaTazNXYFJaBC+bjJVyY5tlRM3LRvcOZMyGvpCb0STBfVNUvNLs1fafnunn7Z8znaeCHmwVUydTSw="
 
-before_install:
- - sudo apt-get install -qq php5-cli
- - sudo php $HOME/.phpenv/versions/`php -r 'echo phpversion();'`/bin/composer.phar self-update
- - sudo apt-get install -qq doxygen
-
 install:
  # Create MySQL Database
  - mysql -e "create database drupal;"
 
- # Install Drush and PHP libraries
+ # Install Drush, PHP libraries, and their dependencies
+ - sudo apt-get install -qq doxygen
  - pear upgrade --force pear
  - pear upgrade --force Console_GetoptPlus
  - pear upgrade-all
