@@ -22,7 +22,6 @@ env:
 before_install:
 
   - composer selfupdate
-  - composer install
 
 install:
 
