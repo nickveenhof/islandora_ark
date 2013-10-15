@@ -21,7 +21,7 @@ env:
 
 before_install:
 
-  - php composer.phar self-update
+  - composer.phar self-update
   - sudo apt-get install -qq doxygen
 
 install:
@@ -89,7 +89,7 @@ notifications:
   recipients:
    ksclarke@gmail.com
   on_failure: change
-  on_success: change
+  on_success: never
  irc:
   channels:
    "chat.freenode.net#freelibrary"
