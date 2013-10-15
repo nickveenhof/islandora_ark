@@ -20,7 +20,7 @@ env:
   - secure: "O3udVAJvvuUr9xACkgzo1V93M1G/RMx0zIhk41Qg62zjGrhAqoc+FkJpwl6N3sUNsh5gkpJC9VUGec7RFfaSdP+g8rKyhXbaTazNXYFJaBC+bjJVyY5tlRM3LRvcOZMyGvpCb0STBfVNUvNLs1fafnunn7Z8znaeCHmwVUydTSw="
 
 before_install:
- - sudo find / -name composer.phar
+ - sudo apt-get install -qq php5-cli
  - sudo $HOME/.phpenv/versions/`php -r 'echo phpversion();'`/bin/composer.phar self-update
  - sudo apt-get install -qq doxygen
 
