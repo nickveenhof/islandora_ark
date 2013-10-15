@@ -19,6 +19,11 @@ env:
   - secure: "LSoR3nbALUkpi8xM6exAzN0D+ZDUwI2kT9uB2ZI2+z0micgLTuU7fDWD6yG6JEAIoN5e4To+Ih16pgtZZUjcdNLNzReF0IEVlauB/CopNbCK0hkpnzLVcb8wvgrz900x03j77ee45biw+10LlDNYdVlWebEnsTgu1khnVlVFqZE="
   - secure: "O3udVAJvvuUr9xACkgzo1V93M1G/RMx0zIhk41Qg62zjGrhAqoc+FkJpwl6N3sUNsh5gkpJC9VUGec7RFfaSdP+g8rKyhXbaTazNXYFJaBC+bjJVyY5tlRM3LRvcOZMyGvpCb0STBfVNUvNLs1fafnunn7Z8znaeCHmwVUydTSw="
 
+before_install:
+
+  - composer selfupdate
+  - composer install
+
 install:
 
   # Create MySQL Database
@@ -34,6 +39,7 @@ install:
   - pear install --alldeps pear/PHP_CodeSniffer
   - pear install --alldeps phpunit/PHPUnit_Selenium
   - pear install --alldeps pear.phpunit.de/phpcpd
+  - pear install --alldeps pear.phpunit.de/phploc
   - phpenv rehash
 
   # Install Drupal and initialize a default site
