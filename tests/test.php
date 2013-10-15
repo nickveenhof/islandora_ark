@@ -27,9 +27,10 @@ class WebTest extends PHPUnit_Extensions_Selenium2TestCase {
     $this->assertEquals('Welcome to localhost | localhost', $this->title());
   }
 
-//   public function testHeaderContainerWrapperDisabled() {
-//     $this->url('http://localhost:8080/');
-//     $element = $this->byCssSelector('header.container-wrapper');
-//     $this->assertEquals('none', $element->css('display'));
-//   }
+  /*
+  public function testHeaderContainerWrapperDisabled() {
+  $this->url('http://localhost:8080/');
+  $element = $this->byCssSelector('header.container-wrapper');
+  $this->assertEquals('none', $element->css('display'));
+  }*/
 }

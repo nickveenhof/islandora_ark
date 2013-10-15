@@ -317,14 +317,14 @@ function islandora_ezid_batch_submit($form, &$form_state) {
         '@email' => $user->mail,
       );
 
-      drupal_set_message(t('Requested number of ARKs (@count) exceeds the ' .
-          'number of cached ARKs (@totalcount). The batch will be run and ' .
-          "an email sent to @email when it's done.", $details));
+      drupal_set_message(t("Requested number of ARKs (@count) exceeds the
+          number of cached ARKs (@totalcount). The batch will be run and
+          an email sent to @email when it's done.", $details));
     }
     else {
-      drupal_set_message(t('Requested number of ARKs exceeds the number of ' .
-          'cached ARKs. The batch will be run and an email sent to @email ' .
-          "when it's done.", array('@email' => $user->mail)));
+      drupal_set_message(t("Requested number of ARKs exceeds the number of
+          cached ARKs. The batch will be run and an email sent to @email
+          when it's done.", array('@email' => $user->mail)));
     }
   }
 }
@@ -354,7 +354,7 @@ function islandora_ezid_batch_config($form, &$form_state) {
 
 /**
  * Validates the comma delimited list of IPs.
- * 
+ *
  * @param unknown $element
  *   The element associated with the allowedIPs variable.
  * @param unknown $form_state
