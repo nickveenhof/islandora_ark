@@ -18,7 +18,8 @@ env:
   - secure: "bmv4L31adCSvfmiex1YctKq53qjolZgEw7UuBp+IIxtMFUgCaQeMLcRC7wczWAsD1EolxDRqaantzeZrv9OhC8A7piZ4apa7mDLiIvkmhYFFon08Y0gxwYHRon34JolgAafi8p0s7f1Di2g+QvusjjK00cbanmwf100K2H71I4w="
   - secure: "LSoR3nbALUkpi8xM6exAzN0D+ZDUwI2kT9uB2ZI2+z0micgLTuU7fDWD6yG6JEAIoN5e4To+Ih16pgtZZUjcdNLNzReF0IEVlauB/CopNbCK0hkpnzLVcb8wvgrz900x03j77ee45biw+10LlDNYdVlWebEnsTgu1khnVlVFqZE="
   - secure: "O3udVAJvvuUr9xACkgzo1V93M1G/RMx0zIhk41Qg62zjGrhAqoc+FkJpwl6N3sUNsh5gkpJC9VUGec7RFfaSdP+g8rKyhXbaTazNXYFJaBC+bjJVyY5tlRM3LRvcOZMyGvpCb0STBfVNUvNLs1fafnunn7Z8znaeCHmwVUydTSw="
-  - CODE_SNIFFER_DIR="$HOME/.phpenv/versions/`php -r 'echo phpversion();'`/pear/PHP/CodeSniffer"
+  - PHP_VERSION=`php -r 'echo phpversion();'`
+  - CODE_SNIFFER_DIR=$HOME/.phpenv/versions/$PHP_VERSION/pear/PHP/CodeSniffer
 
 install:
 
@@ -44,7 +45,7 @@ install:
  - phpenv rehash
 
  # Check compliance with Drupal coding standards before building
- - cp -r ~/islandora_ezid/src/site/resources/codesniffer/* $CODE_SNIFFER_DIR
+ - cp -r ~/islandora_ezid/src/site/resources/codesniffer/Standards $CODE_SNIFFER_DIR
  - echo 'console-results=true' > ~/.islandora-build.properties 
  - ant code_sniff
  - rm ~/.islandora-build.properties
