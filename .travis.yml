@@ -14,17 +14,14 @@ mysql:
 
 env:
  global:
-  - secure: "MM3ILzTgjHxd3yeoRWPByKn0dckk+8XPeKI6YRZV38/Nd6nfe/S1wUaPGD3KJ2E/1wU7ifstkQTxndom5WhIlsOLCKLmJqeIMJ4lnCP5upl01Ec7K8ui8eQrHCjhCVgDJ4csAEOWqVP09uBKxJZ1DC7jMY3ItQeI+wMQ9GQ4D/8="
-  - secure: "bmv4L31adCSvfmiex1YctKq53qjolZgEw7UuBp+IIxtMFUgCaQeMLcRC7wczWAsD1EolxDRqaantzeZrv9OhC8A7piZ4apa7mDLiIvkmhYFFon08Y0gxwYHRon34JolgAafi8p0s7f1Di2g+QvusjjK00cbanmwf100K2H71I4w="
-  - secure: "LSoR3nbALUkpi8xM6exAzN0D+ZDUwI2kT9uB2ZI2+z0micgLTuU7fDWD6yG6JEAIoN5e4To+Ih16pgtZZUjcdNLNzReF0IEVlauB/CopNbCK0hkpnzLVcb8wvgrz900x03j77ee45biw+10LlDNYdVlWebEnsTgu1khnVlVFqZE="
-  - secure: "O3udVAJvvuUr9xACkgzo1V93M1G/RMx0zIhk41Qg62zjGrhAqoc+FkJpwl6N3sUNsh5gkpJC9VUGec7RFfaSdP+g8rKyhXbaTazNXYFJaBC+bjJVyY5tlRM3LRvcOZMyGvpCb0STBfVNUvNLs1fafnunn7Z8znaeCHmwVUydTSw="
+  - secure: "a/9NeL71UfMqy1Ry3hpAuHIxSywF92yduXifkai34rCmCBOZzbARU6RcWG6Loriv+PnQRbwRJFdVfVJByJgRyfQ2jtLKL85pzw7ri+1WZv/7/N0EK1v0W0DAm9+f1KlVvjF7bTu3fh37jZuIrvuPUlcUnyDPuuJeLGCDOi8l3ZM="
 
 install:
 
- # Create MySQL Database
+ # Create MySQL database
  - mysql -e "create database drupal;"
 
- # Install Drush, PHP libraries, and their dependencies
+ # Install Drush, PHP build/test libraries, and their dependencies
  - sudo apt-get install -qq doxygen
  - pear upgrade --force pear
  - pear upgrade --force Console_GetoptPlus
@@ -57,11 +54,10 @@ install:
  - drush -y -r ../drupal si standard --sites-subdir=default --account-name=travis --account-pass=travis --db-url=mysql://root@localhost/drupal --site-name=localhost
  - drush -y -r ../drupal cc all
 
- # Install FreeLibrary theme, enable it, and set it as the default
- #- mkdir -p ../drupal/sites/all/themes/hashtagbus
- #- cp -r * ../drupal/sites/all/themes/hashtagbus
- #- drush -y -r ../drupal en hashtagbus
- #- drush -y -r ../drupal vset theme_default hashtagbus
+ # Install islandora_ezid and enable it
+ - mkdir -p ../drupal/sites/all/modules/islandora_ezid
+ - cp -r * ../drupal/sites/all/modules/islandora_ezid
+ - drush -y -r ../drupal en islandora_ezid
 
 before_script:
 
@@ -70,7 +66,7 @@ before_script:
  - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
  - sleep 5
 
- # Start Drupal (needs to be done from drupal dir, it seems?)
+ # Start Drupal (needs to be done from drupal dir it seems(?))
  - cd ../drupal
  - drush rs --php-cgi=~/.phpenv/shims/php-cgi --server=builtin 8080 > /dev/null 2>&1 &
  - cd ../islandora_ezid
@@ -81,10 +77,18 @@ before_script:
  - java -jar selenium-server-standalone-2.33.0.jar -p 4444 > /dev/null 2>&1 &
  - sleep 10
 
+ # Configure islandora_ezid so we can run tests against it
+ - php -r "print json_encode(array('ezidService'=>'https://n2t.net/ezid/','ezidNAAN'=>'99999','ezidShoulder'=>'fk4','cachedARKCount'=>'10','allowedIPs'=>'127.0.0.1','ezidUsername'=>'apitest','ezidPassword'=>'$EZIDPW','debugMode'=>TRUE));" | drush vset --yes --format=json islandora_ezid_settings -
+ - php -r "print json_encode(array('debugMode'=>TRUE,'labelsMode'=>TRUE,'arkExportFileName'=>'arks-','numberOfARKs'=>'5','arkTagsDefault'=>''));" | drush vset --yes --format=json islandora_ezid_batch_settings -
+
 script:
 
  # Run the ant build file that checks the code and builds the reports
  - ant
+
+ # Testing
+ - drush core-cron
+ - drush php-eval "module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils'); echo count_reserved_arks();"
 
  # Run PHPUnit to run our project's tests
  - phpunit --verbose $TRAVIS_BUILD_DIR/tests/test.php
