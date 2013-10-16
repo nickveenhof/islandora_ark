@@ -78,8 +78,8 @@ before_script:
  - sleep 10
 
  # Configure islandora_ezid so we can run tests against it
- - php -r "print json_encode(array('ezidService'=>'https://n2t.net/ezid/','ezidNAAN'=>'99999','ezidShoulder'=>'fk4','cachedARKCount'=>'10','allowedIPs'=>'127.0.0.1','ezidUsername'=>'apitest','ezidPassword'=>'$EZIDPW','debugMode'=>TRUE));" | drush vset --yes --format=json islandora_ezid_settings -
- - php -r "print json_encode(array('debugMode'=>TRUE,'labelsMode'=>TRUE,'arkExportFileName'=>'arks-','numberOfARKs'=>'5','arkTagsDefault'=>''));" | drush vset --yes --format=json islandora_ezid_batch_settings -
+ - php -r "print json_encode(array('ezidService'=>'https://n2t.net/ezid/','ezidNAAN'=>'99999','ezidShoulder'=>'fk4','cachedARKCount'=>'10','allowedIPs'=>'127.0.0.1','ezidUsername'=>'apitest','ezidPassword'=>'$EZIDPW','debugMode'=>TRUE));" | drush -r ../drupal vset --yes --format=json islandora_ezid_settings -
+ - php -r "print json_encode(array('debugMode'=>TRUE,'labelsMode'=>TRUE,'arkExportFileName'=>'arks-','numberOfARKs'=>'5','arkTagsDefault'=>''));" | drush -r ../drupal vset --yes --format=json islandora_ezid_batch_settings -
 
 script:
 
@@ -87,8 +87,8 @@ script:
  - ant
 
  # Testing
- - drush core-cron
- - drush php-eval "module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils'); echo count_reserved_arks();"
+ - drush -r ../drupal core-cron
+ - drush -r ../drupal php-eval "module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils'); echo count_reserved_arks();"
 
  # Run PHPUnit to run our project's tests
  - phpunit --verbose $TRAVIS_BUILD_DIR/tests/test.php
