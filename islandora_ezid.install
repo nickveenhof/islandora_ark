@@ -12,7 +12,7 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  * Implements hook_install().
  *
  * @see islandora_islandora_required_objects()
- */
+*/
 function islandora_ezid_install() {
   // We shouldn't have this table around, but let's remove it if we do.
   if (db_table_exists('islandora_ezid_arks')) {
@@ -51,7 +51,7 @@ function islandora_ezid_install() {
   // Create the directory into which we put scheduled minting jobs.
   $dir_path = file_build_uri('cron-arks');
   file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
-  
+
   // Create the directory into which we put processed minting jobs.
   $dir_path = file_build_uri('arks');
   file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
