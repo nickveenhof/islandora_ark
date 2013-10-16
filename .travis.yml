@@ -78,8 +78,8 @@ before_script:
  - sleep 10
 
  # Configure islandora_ezid so we can run tests against it
- - php -r "print json_encode(array('ezidService'=>'https://n2t.net/ezid/','ezidNAAN'=>'99999','ezidShoulder'=>'fk4','cachedARKCount'=>'10','allowedIPs'=>'127.0.0.1','ezidUsername'=>'apitest','ezidPassword'=>'$EZIDPW','debugMode'=>TRUE));" | drush -r ../drupal vset --yes --format=json islandora_ezid_settings -
- - php -r "print json_encode(array('debugMode'=>TRUE,'labelsMode'=>TRUE,'arkExportFileName'=>'arks-','numberOfARKs'=>'5','arkTagsDefault'=>''));" | drush -r ../drupal vset --yes --format=json islandora_ezid_batch_settings -
+ - php -r "print json_encode(array('ezidService'=>'https://n2t.net/ezid/','ezidNAAN'=>'99999','ezidShoulder'=>'fk4','cachedARKCount'=>'10','allowedIPs'=>'127.0.0.1','ezidUsername'=>'apitest','ezidPassword'=>'$EZIDPW','debugMode'=>TRUE));" | drush -r ../drupal -p vset --yes --format=json islandora_ezid_settings -
+ - php -r "print json_encode(array('debugMode'=>TRUE,'labelsMode'=>TRUE,'arkExportFileName'=>'arks-','numberOfARKs'=>'5','arkTagsDefault'=>''));" | drush -r ../drupal -p vset --yes --format=json islandora_ezid_batch_settings -
 
 script:
 

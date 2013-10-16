@@ -330,9 +330,6 @@ function assign_arks($config) {
     watchdog('ezid', $message, $details, WATCHDOG_DEBUG);
   }
 
-  // Check that the 'arks' directory exists already.
-  file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
-
   // Open our ARK file.
   $ark_file = fopen($file_path, 'a');
 

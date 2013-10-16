@@ -291,9 +291,6 @@ function islandora_ezid_batch_submit($form, &$form_state) {
     $dir_path = file_build_uri('cron-arks');
     $file_path = $dir_path . '/' . $file_name;
 
-    // Check that the 'arks' directory exists already.
-    file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
-
     // Open our cron job scheduler file.
     $ark_file = fopen($file_path, 'a');
 

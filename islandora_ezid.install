@@ -47,6 +47,14 @@ function islandora_ezid_install() {
 
   // Remember the VID of our vocabulary so we can have easy access to it later.
   variable_set('EZID_VOCAB_VID', get_ezid_tag_vid());
+
+  // Create the directory into which we put scheduled minting jobs.
+  $dir_path = file_build_uri('cron-arks');
+  file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
+  
+  // Create the directory into which we put processed minting jobs.
+  $dir_path = file_build_uri('arks');
+  file_prepare_directory($dir_path, FILE_CREATE_DIRECTORY);
 }
 
 /**
