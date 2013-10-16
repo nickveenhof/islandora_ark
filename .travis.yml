@@ -42,16 +42,18 @@ install:
  - pear install pdepend/PHP_Depend
  - phpenv rehash
 
- # Check compliance with Drupal coding standards before building the project
+ # Install Drupal coding standards so the ant build (phpcs) has access to them
  - PHP_VERSION=$(php -- < src/site/resources/codesniffer/phpversion.php)
  - CODE_SNIFFER_DIR=~/.phpenv/versions/$PHP_VERSION/pear/PHP/CodeSniffer
  - cp -r src/site/resources/codesniffer/Standards $CODE_SNIFFER_DIR
+ 
+  # Check compliance with Drupal coding standards before building the project
  - echo 'console-results=true' > ~/.islandora-build.properties 
  - ant code_sniff
  - rm ~/.islandora-build.properties
 
  # Install Drupal and initialize a default site
- - drush -y dl drupal --drupal-project-rename=drupal --destination=$TRAVIS_BUILD_DIR/../
+ - drush -y dl drupal --drupal-project-rename=drupal --destination=../
  - drush -y -r ../drupal si standard --sites-subdir=default --account-name=travis --account-pass=travis --db-url=mysql://root@localhost/drupal --site-name=localhost
  - drush -y -r ../drupal cc all
 
@@ -81,10 +83,10 @@ before_script:
 
 script:
 
- # Run the build file
+ # Run the ant build file that checks the code and builds the reports
  - ant
 
- # Run PHPUnit
+ # Run PHPUnit to run our project's tests
  - phpunit --verbose $TRAVIS_BUILD_DIR/tests/test.php
 
 notifications:

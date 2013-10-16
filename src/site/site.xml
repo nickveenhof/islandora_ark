@@ -73,7 +73,7 @@
         <!-- top navbar -->
         <menu name="Read the Docs">
             <item name="Introduction" href="index.html"/>
-            <item name="Javadocs ↗" href="apidocs/index.html" target="_new"/>
+            <item name="Documentation ↗" href="api/html/files.html" target="_new"/>
             <item name="Issues Queue ↗" target="_new"
                 href="https://github.com/ksclarke/islandora_ezid/issues"/>
             <item name="License" href="license.html"/>
