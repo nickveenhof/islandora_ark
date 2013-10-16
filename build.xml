@@ -31,13 +31,13 @@
       <arg value="-l"/>
 
       <fileset dir="${basedir}">
-        <exclude name="src"/>
-        <exclude name="target"/>
         <include name="**/*.php"/>
         <include name="**/*.inc"/>
         <include name="**/*.module"/>
         <include name="**/*.install"/>
         <include name="**/*.test"/>
+        <exclude name="**/*src*"/>
+        <exclude name="**/*target*"/>
         <modified/>
       </fileset>
     </apply>
