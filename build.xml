@@ -31,14 +31,17 @@
       <arg value="-l"/>
 
       <fileset dir="${basedir}">
-        <include name="**/*.php"/>
-        <include name="**/*.inc"/>
-        <include name="**/*.module"/>
-        <include name="**/*.install"/>
-        <include name="**/*.test"/>
-        <exclude name="**/*src*"/>
-        <exclude name="**/*target*"/>
-        <modified/>
+        <include name="*.module"/>
+        <include name="*.info"/>
+      </fileset>
+      <fileset dir="${basedir}/includes">
+        <include name="*.inc"/>
+      </fileset>
+      <fileset dir="${basedir}/tests">
+        <include name="*.php"/>
+      </fileset>
+      <fileset dir="${basedir}/theme">
+        <include name="*.php"/>
       </fileset>
     </apply>
   </target>
@@ -46,7 +49,7 @@
   <target name="phploc" description="Measure project size using PHPLOC">
     <exec executable="phploc">
       <arg
-        line="--log-csv ${basedir}/target/site/logs/phploc.csv --exclude css --exclude src --names *.php,*.module,*.inc,*.test,*.install ${basedir}"
+        line="--log-csv ${basedir}/target/site/logs/phploc.csv --exclude css --exclude src --names *.php,*.module,*.inc,*.install ${basedir}"
       />
     </exec>
   </target>
@@ -80,7 +83,7 @@
   <target name="phpcpd" description="Copy/Paste code detection">
     <exec executable="phpcpd">
       <arg
-        line="--log-pmd ${basedir}/target/site/logs/pmd-cpd.xml --exclude target --exclude css --exclude src --names *.php,*.module,*.inc,*.test,*.install ${basedir}"
+        line="--log-pmd ${basedir}/target/site/logs/pmd-cpd.xml --exclude target --exclude css --exclude src --names *.php,*.module,*.inc,*.install ${basedir}"
       />
     </exec>
   </target>
