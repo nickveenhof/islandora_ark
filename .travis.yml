@@ -42,9 +42,10 @@ install:
  - pear install pdepend/PHP_Depend
  - phpenv rehash
 
- # Check compliance with Drupal coding standards before building
- - CODE_SNIFFER_DIR=~/.phpenv/versions/$(php -- < $TRAVIS_BUILD_DIR/src/site/resources/codesniffer/phpversion.php)/pear/PHP/CodeSniffer
- - cp -r $TRAVIS_BUILD_DIR/src/site/resources/codesniffer/Standards $CODE_SNIFFER_DIR
+ # Check compliance with Drupal coding standards before building the project
+ - PHP_VERSION=$(php -- < src/site/resources/codesniffer/phpversion.php)
+ - CODE_SNIFFER_DIR=~/.phpenv/versions/$PHP_VERSION/pear/PHP/CodeSniffer
+ - cp -r src/site/resources/codesniffer/Standards $CODE_SNIFFER_DIR
  - echo 'console-results=true' > ~/.islandora-build.properties 
  - ant code_sniff
  - rm ~/.islandora-build.properties
