@@ -209,6 +209,7 @@ function islandora_ezid_get_settings() {
     'ezidService' => 'https://n2t.net/ezid/', /* Expose, but change doubtful */
     'ezidNAAN' => '99999', /* 99999 is used for testing */
     'ezidUsername' => 'YOUR_USERNAME', /* For display purposes */
+    'ezidPassword' => getenv('EZIDPWD'), /* Sets this in testing environment */
     'ezidShoulder' => 'fk4', /* fk4 is used for testing */
     'cachedARKCount' => '200', /* In case EZID is ever down */
     'allowedIPs' => '', /* IP addresses allowed to access the Web service. */
