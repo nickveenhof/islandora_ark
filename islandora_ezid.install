@@ -14,21 +14,6 @@ module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils');
  * @see islandora_islandora_required_objects()
  */
 function islandora_ezid_install() {
-  // We shouldn't have this table around, but let's remove it if we do.
-  if (db_table_exists('islandora_ezid_arks')) {
-    $message = 'Removing pre-existing islandora_ezid_arks table';
-    watchdog('ezid_install', $message, NULL, WATCHDOG_WARNING);
-
-    // Let's be cautious and export our ARKs before uninstalling.
-    export_arks();
-
-    // Then, we can drop the database table.
-    drupal_uninstall_schema('islandora_ezid');
-  }
-
-  // Create the EZID ARK database table.
-  drupal_install_schema('islandora_ezid');
-
   // Tests whether an old copy of our vocabulary exists before trying to add.
   $vid = get_ezid_tag_vid();
 
@@ -70,9 +55,6 @@ function islandora_ezid_uninstall() {
 
   // Remove the tag vocabulary we created on install.
   remove_ezid_vocabulary();
-
-  // Remove the database tables.
-  drupal_uninstall_schema('islandora_ezid');
 }
 
 /**
