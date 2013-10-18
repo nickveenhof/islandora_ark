@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Tests the batch mode of the Islandora EZID module.
+ */
+
+/**
+ * Tests the batch mode of the Islandora EZID module through the Web interface.
+ * 
+ * @author Kevin S. Clarke <ksclarke@gmail.com>
+ */
+class EZIDBatchTestCase extends DrupalWebTestCase {
+
+  /**
+   * A user to run tests as.
+   * 
+   * @var unknown $privilegedUser
+   */
+  protected $privilegedUser;
+
+  /**
+   * Returns basic information about the test.
+   *
+   * @return multitype:string
+   *   Basic information about the test.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Batch Functionality Test',
+      'description' => "Web-based Tests for Islandora EZID's batch interface.",
+      'group' => 'Islandora EZID',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  public function setUp() {
+    // Cron runs with each test, but we don't need to mint ARKs for every test.
+    $settings = variable_get('islandora_ezid_settings');
+    $settings['cachedARKCount'] = '0';
+    variable_set('islandora_ezid_settings', $settings);
+
+    // This sets up the module (and also runs the cron job).
+    parent::setUp('islandora_ezid');
+
+    // Create and log in our user.
+    $privileges = array('administer site configuration');
+    $this->privilegedUser = $this->drupalCreateUser($privileges);
+    $this->drupalLogin($this->privilegedUser);
+  }
+
+  /**
+   * Test stub.
+   */
+  public function testSimpletestWebTestExampleFunction() {
+    $this->assertTrue(TRUE, "test assert true");
+  }
+}

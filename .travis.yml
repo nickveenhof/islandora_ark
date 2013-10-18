@@ -54,6 +54,9 @@ install:
  - drush -y -r ../drupal si standard --sites-subdir=default --account-name=travis --account-pass=travis --db-url=mysql://root@localhost/drupal --site-name=localhost
  - drush -y -r ../drupal cc all
 
+ # Enable the Drupal SimpleTest framework
+ - drush -y -r ../drupal en simpletest
+
  # Install islandora_ezid and enable it
  - mkdir -p ../drupal/sites/all/modules/islandora_ezid
  - cp -r * ../drupal/sites/all/modules/islandora_ezid
@@ -86,12 +89,15 @@ script:
  # Run the ant build file that checks the code and builds the reports
  - ant
 
- # Testing
+ # Run Drush eval tests (option 1)
  - drush -r ../drupal core-cron
  - drush -r ../drupal php-eval "module_load_include('inc', 'islandora_ezid', 'includes/islandora_ezid.utils'); echo count_reserved_arks();"
 
- # Run PHPUnit to run our project's tests
- - phpunit --verbose $TRAVIS_BUILD_DIR/tests/test.php
+ # Run PHPUnit to run our project's Selenium tests (option 2)
+ - phpunit --verbose $TRAVIS_BUILD_DIR/tests/selenium_tests.php
+
+ # Run Drupal SimpleTests (option 3)
+ - drush -r ../drupal test-run 'Islandora EZID'
 
 notifications:
  email:

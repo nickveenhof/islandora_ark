@@ -8,7 +8,8 @@
 /**
  * Tests that Drupal's Web interface is up and functioning.
  */
-class WebTest extends PHPUnit_Extensions_Selenium2TestCase {
+class SeleniumTest extends PHPUnit_Extensions_Selenium2TestCase {
+
   protected $captureScreenshotOnFailure = TRUE;
 
   /**

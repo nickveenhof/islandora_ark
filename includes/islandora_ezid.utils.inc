@@ -138,7 +138,7 @@ function is_whole_number($variable) {
  */
 function count_reserved_arks() {
   $query = 'SELECT COUNT(*) FROM islandora_ezid_arks WHERE state = 0';
-  return db_query($query)->fetchField(); /* How many reserved in cache? */
+  return (int) db_query($query)->fetchField(); /* How many reserved ARKs? */
 }
 
 /**
@@ -149,7 +149,7 @@ function count_reserved_arks() {
  */
 function count_arks() {
   $query = 'SELECT COUNT(*) FROM islandora_ezid_arks';
-  return db_query($query)->fetchField(); /* How many reserved or assigned */
+  return (int) db_query($query)->fetchField(); /* How many ARKs in the db? */
 }
 
 /**
@@ -160,28 +160,7 @@ function count_arks() {
  */
 function count_assigned_arks() {
   $query = 'SELECT COUNT(*) FROM islandora_ezid_arks WHERE state = 1';
-  return db_query($query)->fetchField(); /* How many ARKs are assigned? */
-}
-
-/**
- * Removes a set of keys (and their values) from the supplied array.
- *
- * @param array $keys
- *   The things to be removed from the array.
- * @param array $array
- *   The array from which to remove the supplied keys.
- *
- * @return array
- *   The array with the keys removed.
- */
-function remove_from_array($keys, $array) {
-  foreach ($keys as $key) {
-    if (($key = array_search($key, $array)) !== FALSE) {
-      unset($array[$key]);
-    }
-  }
-
-  return $array;
+  return (int) db_query($query)->fetchField(); /* How many assigned ARKs? */
 }
 
 /**
@@ -190,8 +169,15 @@ function remove_from_array($keys, $array) {
  * Checks machine name first, but then checks variable in case of renaming.
  */
 function get_ezid_tag_vid() {
-  $vid = taxonomy_vocabulary_get_names()['ezid_ark_tags']->vid;
-  return isset($vid) ? $vid : variable_get('EZID_VOCAB_VID');
+  $names = taxonomy_vocabulary_get_names();
+
+  if (isset($names['ezid_ark_tags'])) {
+    $vid = $names['ezid_ark_tags']->vid;
+    return isset($vid) ? $vid : variable_get('EZID_VOCAB_VID');
+  }
+  else {
+    return NULL;
+  }
 }
 
 /**
@@ -268,7 +254,7 @@ function read_cron_jobs($debug) {
 function to_ip_array($value) {
   $ips = array();
 
-  foreach (explode(',', $value) as $ip) {
+  foreach (explode(',', rtrim($value, ', \n\r\t\x0B\0')) as $ip) {
     $ips[] = trim($ip);
   }
 

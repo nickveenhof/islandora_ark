@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * @file
+ * Tests the batch mode of the Islandora EZID module.
+ */
+
+/**
+ * Unit tests.
+ *
+ * These tests can not access the database nor the file system they just check
+ * the basic module utility functions.
+ *
+ * @author Kevin S. Clarke <ksclarke@gmail.com>
+ */
+class IslandoraEZIDUnitTestCase extends DrupalUnitTestCase {
+
+  /**
+   * Returns basic information about the test.
+   *
+   * @return multitype:string
+   *   Basic information about the test.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Unit Tests',
+      'description' => 'Unit Tests for Islandora EZID.',
+      'group' => 'Islandora EZID',
+    );
+  }
+
+  /**
+   * Sets up the test.
+   */
+  public function setUp() {
+    drupal_load('module', 'islandora_ezid');
+    parent::setUp();
+  }
+
+  /**
+   * Test that checks to_ip_array().
+   */
+  public function testToIpArrayFunction() {
+    $value2a = '127.0.0.1,192.168.0.1,192.168.1.1';
+    $value2b = '127.0.0.1, 192.168.0.1, 192.168.1.1';
+    $value2c = '127.0.0.1, 192.168.0.1, 192.168.1.1,';
+    $value2d = '127.0.0.1,192.168.0.1, 192.168.1.1';
+    $value2e = '127.0.0.1,192.168.0.1, 192.168.1.1, ';
+
+    // Desired output in array form.
+    $value2_array = array('127.0.0.1', '192.168.0.1', '192.168.1.1');
+
+    $this->assertEqual(to_ip_array('127.0.0.1'), array('127.0.0.1'));
+    $this->assertEqual(to_ip_array($value2a), $value2_array);
+    $this->assertEqual(to_ip_array($value2b), $value2_array);
+    $this->assertEqual(to_ip_array($value2c), $value2_array);
+    $this->assertEqual(to_ip_array($value2d), $value2_array);
+    $this->assertEqual(to_ip_array($value2e), $value2_array);
+  }
+
+}

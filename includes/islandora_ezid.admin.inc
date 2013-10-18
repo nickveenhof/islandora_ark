@@ -362,7 +362,7 @@ function islandora_ezid_batch_config($form, &$form_state) {
 function ws_ip_validate($element, &$form_state, $form) {
   $ips = trim($element['#value']);
 
-  if (isset($ips)) {
+  if (!empty($ips)) {
     foreach (explode(',', $ips) as $ip) {
       $ip = trim($ip);
 

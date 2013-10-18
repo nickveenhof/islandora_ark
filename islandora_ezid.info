@@ -1,7 +1,10 @@
 name = Islandora EZID ARK Manager
-description = Manages EZID ARKs inside of Islandora.
+description = Manages EZID ARKs inside of Islandora and Drupal.
 package = Islandora
 version = 7.x-dev
 core = 7.x
+dependencies[] = simpletest
 stylesheets[all][] = css/islandora_ezid.css
 scripts[] = js/islandora_ezid.js
+files[] = tests/batch_tests.test
+files[] = tests/unit_tests.test
